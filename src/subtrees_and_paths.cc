@@ -11,9 +11,12 @@
  */
 
 #include <algorithm>
+#include <climits>
+#include <cstdint>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -22,8 +25,22 @@
 #include <vector>
 #include <utility>
 
+// TODO: put in shared header
+#ifdef PDHKR_NO_OUTPUT_FILE
+#undef PDHKR_OUTPUT_FILE
+#endif  // PDHKR_NO_OUTPUT_FILE
+
+// only necessary when writing to output file locally
+#ifdef PDHKR_OUTPUT_FILE
+#include <filesystem>
+#include <fstream>
+#endif  // PDHKR_OUTPUT_FILE
+
 namespace {
 
+// see note. define this to use the original tree_node implementation and
+// related methods that work only if input results in an actual tree
+#if defined(USE_TREE_NODE)
 /**
  * Simple tree node with unique ownership over children.
  */
@@ -233,25 +250,321 @@ auto max_value(
   }
   return res;
 }
+// use more general implementation that treats problem as a graph problem
+#else
+/**
+ * Type alias for the edge map.
+ *
+ * Since there are only 100000 nodes max a 64-bit unsigned int more than
+ * sufficient to keep track of the nodes. We just shift by 32 bits.
+ */
+using edge_map_type = std::unordered_map<std::uint64_t, bool>;
+
+/**
+ * Type alias for the node map.
+ *
+ * This tracks both the node and its value (an integer).
+ */
+using node_map_type = std::unordered_map<std::uint32_t, int>;
+
+/**
+ * Simple graph type for this problem.
+ *
+ * Nodes have values and edges are unweighted but directed. There is an
+ * underlying assumption given in the problem that all nodes have unique IDs
+ * and are numbered 1 through N, so N is the maximum number of nodes.
+ */
+class simple_graph {
+public:
+  /**
+   * Return const reference to node map.
+   */
+  const auto& nodes() const noexcept { return nodes_; }
+
+  /**
+   * Return const reference to edge map.
+   */
+  const auto& edges() const noexcept { return edges_;}
+
+  /**
+   * Insert the specified node into the graph with a weight of zero.
+   *
+   * If the node ID already exists, nothing is done.
+   */
+  void insert_node(std::uint32_t id)
+  {
+    if (!has_node(id))
+      nodes_[id] = 0;
+  }
+
+  /**
+   * Insert the specified edge into the graph.
+   *
+   * If the edge already exists, nothing is done.
+   */
+  void insert_edge(std::uint32_t id_a, std::uint32_t id_b)
+  {
+    auto edge = make_edge(id_a, id_b);
+    if (!has_edge(edge))
+      edges_[edge] = true;
+  }
+
+  /**
+   * Check if the graph contains the specified node.
+   */
+  bool has_node(std::uint32_t id) const
+  {
+    return nodes_.find(id) != nodes_.end();
+  }
+
+  /**
+   * Check if the graph contains the specified edge.
+   */
+  bool has_edge(std::uint32_t id_a, std::uint32_t id_b) const
+  {
+    return edges_.find(make_edge(id_a, id_b)) != edges_.end();
+  }
+
+  /**
+   * Check if the graph contains the specified edge.
+   */
+  bool has_edge(std::uint64_t edge) const
+  {
+    return edges_.find(edge) != edges_.end();
+  }
+
+  /**
+   * Return number of nodes.
+   */
+  auto n_nodes() const
+  {
+    return nodes_.size();
+  }
+
+  /**
+   * Return number of edges.
+   */
+  auto n_edges() const
+  {
+    return edges_.size();
+  }
+
+  /**
+   * Return the value of the node.
+   *
+   * If the node does not exist an exception will be thrown.
+   */
+  auto value(std::uint32_t id) const
+  {
+    return nodes_.at(id);
+  }
+
+  /**
+   * Return a reference to the value of the node.
+   *
+   * If the node does not exist an exception will be thrown.
+   */
+  auto& value(std::uint32_t id)
+  {
+    return nodes_.at(id);
+  }
+
+  /**
+   * Convert two 32-bit node IDs into the 64-bit value representing an edge.
+   *
+   * @param id_a First node ID, will be left shifted
+   * @param id_b Second node ID, not shifted
+   */
+  static std::uint64_t make_edge(std::uint32_t id_a, std::uint32_t id_b)
+  {
+    // copy into 64-bit value first to prevent overflow
+    std::uint64_t edge = id_a;
+    // NB: parentheses unnecesary but helpful for code clarity
+    return (edge << CHAR_BIT * sizeof id_a) + id_b;
+  }
+
+private:
+  node_map_type nodes_;
+  edge_map_type edges_;
+};
+
+/**
+ * Increment the value of all nodes by the given amount starting from a root.
+ *
+ * There is an underlying assumption that any subgraph starting from root is
+ * a DAG, which for this problem should be true.
+ */
+void blanket_add(simple_graph& graph, std::uint32_t root, int value)
+{
+  // do nothing if root doesn't exist in the graph
+  if (!graph.has_node(root))
+    return;
+  // node queue
+  std::deque<std::uint32_t> nodes{root};
+  // perform BFS
+  while (nodes.size()) {
+    // current node to consider
+    auto cur = nodes.front();
+    nodes.pop_front();
+    // increment node value in graph
+    graph.value(cur) += value;
+    // add children to queue if connected
+    for (decltype(graph.n_nodes()) i = 0; i < graph.n_nodes(); i++) {
+      if (graph.has_edge(cur, i + 1))
+        nodes.push_back(i + 1);
+    }
+  }
+}
+
+/**
+ * Return the path from the root to the given node.
+ *
+ * This function treats the edges as undirected.
+ */
+std::vector<std::uint32_t> compute_path(
+  const simple_graph& graph, std::uint32_t root, std::uint32_t tgt)
+{
+  // empty if no root
+  if (!graph.has_node(root))
+    return {};
+  // node stack. we use the last element of the vector as "top" of stack
+  std::vector<std::uint32_t> stack{root};
+  // map of visited nodes so we don't revisit
+  std::unordered_map<std::uint32_t, bool> visited;
+  // perform DFS
+  while (stack.size()) {
+    // current node to consider
+    auto cur = stack.back();
+    visited[cur] = true;
+    // if found, success
+    if (cur == tgt)
+      break;
+    // add next unvisited child
+    for (decltype(graph.n_nodes()) i = 0; i < graph.n_nodes(); i++) {
+      // TODO: maybe need to add undirected edges in general?
+      if (
+        visited.find(i + 1) == visited.end() &&
+        (graph.has_edge(cur, i + 1) || graph.has_edge(i + 1, cur))
+      ) {
+        stack.push_back(i + 1);
+        break;
+      }
+    }
+    // failed to add any children. pop from stack
+    if (cur == stack.back())
+      stack.pop_back();
+  }
+  // stack contains the search path
+  return stack;
+}
+
+/**
+ * Return the max value of the nodes on the path between root and given nodes.
+ */
+auto max_value(
+  const simple_graph& graph,
+  std::uint32_t root,
+  std::uint32_t id_a,
+  std::uint32_t id_b)
+{
+  // min value (failure)
+  static constexpr auto min_value = std::numeric_limits<int>::min();
+  // find paths for A and B
+  auto path_a = compute_path(graph, root, id_a);
+  auto path_b = compute_path(graph, root, id_b);
+  // if either is empty, return min
+  if (path_a.empty() || path_b.empty())
+    return min_value;
+  // otherwise, find closest ancestor. this is originally the root
+  auto ancestor = root;
+  // iterators for the two paths
+  auto it_a = path_a.begin();
+  auto it_b = path_b.begin();
+  // iterate
+  while (it_a != path_a.end() && it_b != path_b.end()) {
+    // if the nodes are different, break
+    if (*it_a != *it_b)
+      break;
+    // otherwise, update ancestor + continue
+    ancestor = *it_a;
+    it_a++;
+    it_b++;
+  }
+  // start taking max values. start with ancestor
+  auto res = graph.value(ancestor);
+  // if partial path_a non-empty, get max
+  if (std::distance(it_a, path_a.end())) {
+    auto res_it = std::max_element(
+      it_a,
+      path_a.end(),
+      [&graph](const auto& a, const auto& b)
+      {
+        return graph.value(a) < graph.value(b);
+      }
+    );
+    res = std::max(res, graph.value(*res_it));
+  }
+  // repeat for partial path_b
+  if (std::distance(it_b, path_b.end())) {
+    auto res_it = std::max_element(
+      it_b,
+      path_b.end(),
+      [&graph](const auto& a, const auto& b)
+      {
+        return graph.value(a) < graph.value(b);
+      }
+    );
+    res = std::max(res, graph.value(*res_it));
+  }
+  // return result
+  return res;
+}
+#endif  // !defined(USE_TREE_NODE)
 
 }  // namespace
 
+// PDHKR_OUTPUT_FILE defined for local builds to enable automated testing
+#if defined(PDHKR_OUTPUT_FILE)
+int main(int argc, char *argv[])
+#else
 int main()
+#endif  // !defined(PDHKR_OUTPUT_FILE)
 {
+  // output stream
+#if defined(PDHKR_OUTPUT_FILE)
+  if (argc != 2) {
+    std::cout << "Usage: " << argv[0] << " OUTFILE < INFILE" << std::endl;
+    return EXIT_SUCCESS;
+  }
+  std::ofstream out{argv[1]};
+  auto& sink = out;
+  // auto& sink
+#else
+  auto& sink = std::cout;
+#endif  // !defined(PDHKR_OUTPUT_FILE)
   // number of tree nodes
   unsigned int n_nodes;
   std::cin >> n_nodes;
-  // root node
+  // root node only if using tree_node, otherwise use graph
+#if defined(USE_TREE_NODE)
   auto root = std::make_unique<tree_node>(1);
+#else
+  simple_graph graph;
+#endif  // !defined(USE_TREE_NODE)
   // handle edges
   for (decltype(n_nodes) i = 0; i < n_nodes - 1; i++) {
     // read node IDs (1-indexed)
+#if defined(USE_TREE_NODE)
     decltype(n_nodes) id_a, id_b;
+#else
+    std::uint32_t id_a, id_b;
+#endif  // !defined(USE_TREE_NODE)
     std::cin >> id_a;
     std::cin >> id_b;
     // if b < a, swap them. we treat a as the parent (lower ID)
     if (id_b < id_a)
       std::swap(id_a, id_b);
+#if defined(USE_TREE_NODE)
     // find node a
     auto& node_a = get_node(root, id_a);
     if (!node_a) {
@@ -265,10 +578,17 @@ int main()
     else if (!node_a->right())
       node_a->right() = std::make_unique<tree_node>(id_b);
     else {
-      std::cerr << "Both children of node with ID " << id_a <<
-        " are filled" << std::endl;
+      std::cerr << "Both children of node with ID " << id_a << " are filled" <<
+        std::endl;
       return EXIT_FAILURE;
     }
+#else
+  // insert nodes. nodes always start with value zero
+  graph.insert_node(id_a);
+  graph.insert_node(id_b);
+  // insert edge. this is a directed edge
+  graph.insert_edge(id_a, id_b);
+#endif  // !defined(USE_TREE_NODE)
   }
   // number of queries
   unsigned int n_queries;
@@ -281,13 +601,21 @@ int main()
     // add value to all nodes rooted at subtree
     if (query == "add") {
       // read node ID and value
+#if defined(USE_TREE_NODE)
       decltype(n_nodes) id;
+#else
+      std::uint32_t id;
+#endif  // !defined(USE_TREE_NODE)
       int value;
       std::cin >> id;
       std::cin >> value;
       // find node + add values
+#if defined(USE_TREE_NODE)
       auto& node = get_node(root, id);
       blanket_add(node, value);
+#else
+      blanket_add(graph, id, value);
+#endif  // !defined(USE_TREE_NODE)
     }
     // report max value on path from a to b
     else if (query == "max") {
@@ -296,7 +624,13 @@ int main()
       std::cin >> id_a;
       std::cin >> id_b;
       // print max value in path
-      std::cout << max_value(root, id_a, id_b) << std::endl;
+#if defined(USE_TREE_NODE)
+      sink << max_value(root, id_a, id_b) << std::endl;
+      // TODO
+#else
+      // we assumed 1 is always the root in this problem
+      sink << max_value(graph, 1, id_a, id_b) << std::endl;
+#endif  // !defined(USE_TREE_NODE)
     }
     // unknown, error
     else {
