@@ -1,0 +1,6 @@
+# ignore build directories
+/build
+/build_windows_*
+# ignore VS Code settings
+/.vscode
+
