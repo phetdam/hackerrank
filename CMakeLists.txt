@@ -29,6 +29,7 @@ endif()
 # HackerRank uses GCC 8.3.0 and supports C++11, C++14, C++20 as the typical
 # available choices of C++ standard. C++20 is used here by default, but it is
 # not required, so CMake should allow "graceful" decay into C++17, C++14, etc.
+# for that reason, a lot of the code is actually written as C++17, not C++20.
 # see http://tinyurl.com/mr3t7vfe for HackerRank environment documentation
 set(CMAKE_CXX_STANDARD 20)
 
