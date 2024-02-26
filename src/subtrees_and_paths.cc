@@ -5,6 +5,9 @@
  * @copyright MIT License
  *
  * URL: https://www.hackerrank.com/challenges/subtrees-and-paths/problem
+ *
+ * @note The problem states that we are given a rooted tree, but this is a lie.
+ *  Some of the inputs, e.g. 2.in, 3.in, result in a forest being created.
  */
 
 #include <algorithm>
