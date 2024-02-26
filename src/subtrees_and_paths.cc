@@ -250,7 +250,8 @@ auto max_value(
   }
   return res;
 }
-// use more general implementation that treats problem as a graph problem
+// use more general implementation that treats problem as a graph problem.
+// TODO: this is slower than tree when run on 13.in but doesn't fail on 2.in
 #else
 /**
  * Type alias for the edge map.
