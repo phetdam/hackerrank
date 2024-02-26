@@ -19,4 +19,11 @@ imposed on uploaded custom inputs.
 
 TBD for building. Maybe I should try *not* doing these in C++.
 
+TODO: Maybe add a submission simulation driver to enforce limits and make it
+easier to run through different inputs and ouputs while reporting failures.
+E.g. C/C++ programs have 2s runtime limit, 512 MB memory usage limit, and in
+general submission code size must be less than 50 KB (very generous, probably
+no need to check). It would be nice to get a warning when a runtime limit is
+exceeded and if there is a difference in output, a line-by-line diff.
+
 .. _HackerRank: https://www.hackerrank.com/
