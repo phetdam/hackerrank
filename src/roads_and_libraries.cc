@@ -11,8 +11,21 @@
 
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
-#include <bits/stdc++.h>
+// #include <bits/stdc++.h>
+////////////////////////////////////////////////////////////////////////////////
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdlib>
+#include <deque>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+// part of HackerRank template code
+////////////////////////////////////////////////////////////////////////////////
 using namespace std;
 
 string ltrim(const string &);
@@ -21,57 +34,69 @@ vector<string> split(const string &);
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * 2D matrix abstraction with flat storage.
+ * Adjacency list class.
+ *
+ * We have constant lookup for both the start and end nodes and can quickly
+ * iterate through the desired neighbors of a particular node.
+ *
+ * This is much faster than an adjacency matrix since finding neighbors is no
+ * longer fully linear in the number of nodes.
  */
-template <typename T>
-class flat_matrix {
+class adjacency_list {
 public:
-  using value_type = T;
-
   /**
-   * Ctor.
+   * Insert a directed edge into the adjacency list.
    *
-   * Storage is default-initialized.
+   * If the edge already exists, nothing is done.
+   *
+   * @param start ID of start node
+   * @param end ID of end node
    */
-  flat_matrix(std::size_t n_rows, std::size_t n_cols)
-    : n_rows_{n_rows}, n_cols_{n_cols}, values_(n_rows * n_cols)
-  {}
-
-  /**
-   * Return number of rows.
-   */
-  auto n_rows() const noexcept { return n_rows_; }
-
-  /**
-   * Return number of columns.
-   */
-  auto n_cols() const noexcept { return n_cols_; }
-
-  /**
-   * Return const reference to values.
-   */
-  const auto& values() const noexcept { return values_; }
-
-  /**
-   * Return reference to `(i, j)` element.
-   */
-  auto& operator()(std::size_t row, std::size_t col)
+  void insert(int start, int end)
   {
-    return values_.at(row * n_cols_ + col);
+    // create map if it does not exist
+    if (edges_.find(start) == edges_.end())
+      edges_[start] = {};
+    // insert end into submap
+    if (edges_[start].find(end) == edges_[start].end())
+      edges_[start][end] = true;
   }
 
   /**
-   * Return const reference to `(i, j)` element.
+   * Check if the directed edge from `start` to `end` exists.
+   *
+   * @param start ID of start node
+   * @param end ID of end node
    */
-  const auto& operator()(std::size_t row, std::size_t col) const
+  bool contains(int start, int end) const
   {
-    return values_.at(row * n_cols_ + col);
+    // get iterator to the list of nodes start is connected to
+    auto nodes_it = edges_.find(start);
+    // start has no edges, no edge
+    if (nodes_it == edges_.end())
+      return false;
+    // check if end is in nodes_it->second
+    return nodes_it->second.find(end) != nodes_it->second.end();
+  }
+
+  /**
+   * Look up neighbor map for the specified node.
+   *
+   * If no neighbor map exists then an empty one is returned.
+   */
+  const auto& neighbors(int start) const
+  {
+    auto it = edges_.find(start);
+    // couldn't find, return reference to static
+    if (it == edges_.end()) {
+      static decltype(edges_)::mapped_type empty;
+      return empty;
+    }
+    return it->second;
   }
 
 private:
-  std::size_t n_rows_;
-  std::size_t n_cols_;
-  std::vector<T> values_;
+  std::unordered_map<int, std::unordered_map<int, bool>> edges_;
 };
 
 // part of HackerRank template code
@@ -87,19 +112,19 @@ private:
  *  4. 2D_INTEGER_ARRAY cities
  */
 ////////////////////////////////////////////////////////////////////////////////
-long roadsAndLibraries(
-  int n, int c_lib, int c_road, const vector<vector<int>>& cities)
+// renamed from roadsAndLibraries
+long roads_and_libraries(
+  int n, int c_lib, int c_road, const std::vector<std::vector<int>>& cities)
 {
-  // otherwise, build a minimal spanning forest for the cities.
-  // we first use a map that indicates unvisited nodes (start 0)
+  // map for unvisited nodes
   std::unordered_map<int, bool> unvisited;
   for (auto i = 0; i < n; i++)
     unvisited[i] = true;
-  // adjacency matrix of edges (start 0). fill cities as undirected edges
-  flat_matrix<unsigned int> edges(n, n);
+  // adjacency list of edges (indexed from 0). fill cities as undirected edges
+  adjacency_list edges;
   for (const auto& edge : cities) {
-    edges(edge[0] - 1, edge[1] - 1) = 1;
-    edges(edge[1] - 1, edge[0] - 1) = 1;
+    edges.insert(edge[0] - 1, edge[1] - 1);
+    edges.insert(edge[1] - 1, edge[0] - 1);
   }
   // total cost
   long total = 0;
@@ -134,25 +159,26 @@ long roadsAndLibraries(
       total += c_lib;
       connected[root] = true;
     }
-    // for each edge root is connected to
-    for (auto i = 0; i < n; i++) {
+    // for each neighbor (can be empty list)
+    for (const auto [node, _] : edges.neighbors(root)) {
       // undirected edge has a connection + not visited + not connected
       if (
-        unvisited.find(i) != unvisited.end() &&
-        connected.find(i) == connected.end() &&
-        (edges(i, root) || edges(root, i))
+        unvisited.find(node) != unvisited.end() &&
+        connected.find(node) == connected.end() &&
+        (edges.contains(root, node) || edges.contains(node, root))
       ) {
         // increment cost by c_road (build road) + add to connected
         total += c_road;
-        connected[i] = true;
+        connected[node] = true;
         // add nodes to search through
-        queue.push_back(i);
+        queue.push_back(node);
       }
     }
   }
   // return total cost of one library + minimum spanning forest vs. all
-  // libraries without building any roads at all
-  return std::min(static_cast<decltype(total)>(c_lib * n), total);
+  // libraries without building any roads at all. note that cast has to be done
+  // before multiplying by n to ensure correct widening
+  return std::min(static_cast<decltype(total)>(c_lib) * n, total);
 }
 
 // part of HackerRank template code
@@ -166,7 +192,6 @@ int main()
   // as-is from HackerRank. this is unsafe
     ofstream fout(getenv("OUTPUT_PATH"));
 #endif  // !defined(PDHKR_LOCAL_BUILD)
-
     string q_temp;
     getline(cin, q_temp);
 
@@ -203,7 +228,8 @@ int main()
             }
         }
 
-        long result = roadsAndLibraries(n, c_lib, c_road, cities);
+        // was roadsAndLibraries, i hate camelCase
+        long result = roads_and_libraries(n, c_lib, c_road, cities);
 
         fout << result << "\n";
     }
