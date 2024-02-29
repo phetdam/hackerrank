@@ -11,6 +11,9 @@ add_compile_definitions(PDHKR_LOCAL_BUILD)
 # https://www.hackerrank.com/challenges/torque-and-development/problem
 add_executable(roads_and_libraries roads_and_libraries.cc)
 
+# https://www.hackerrank.com/challenges/journey-to-the-moon/problem
+add_executable(journey_to_moon journey_to_moon.cc)
+
 # https://www.hackerrank.com/challenges/subtrees-and-paths/problem
 add_executable(subtrees_and_paths subtrees_and_paths.cc)
 # uncomment to use the tree_node class which only works if the input results in
