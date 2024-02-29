@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 // part of HackerRank template code
@@ -57,9 +58,9 @@ public:
     // create map if it does not exist
     if (edges_.find(start) == edges_.end())
       edges_[start] = {};
-    // insert end into submap
+    // insert end into neighbor set
     if (edges_[start].find(end) == edges_[start].end())
-      edges_[start][end] = true;
+      edges_[start].insert(end);
   }
 
   /**
@@ -80,9 +81,9 @@ public:
   }
 
   /**
-   * Look up neighbor map for the specified node.
+   * Look up neighbor set for the specified node.
    *
-   * If no neighbor map exists then an empty one is returned.
+   * If no neighbor set exists then an empty one is returned.
    */
   const auto& neighbors(int start) const
   {
@@ -96,7 +97,7 @@ public:
   }
 
 private:
-  std::unordered_map<int, std::unordered_map<int, bool>> edges_;
+  std::unordered_map<int, std::unordered_set<int>> edges_;
 };
 
 // part of HackerRank template code
@@ -159,8 +160,8 @@ long roads_and_libraries(
       total += c_lib;
       connected[root] = true;
     }
-    // for each neighbor (can be empty list)
-    for (const auto [node, _] : edges.neighbors(root)) {
+    // for each neighbor (can be empty set)
+    for (const auto node : edges.neighbors(root)) {
       // undirected edge has a connection + not visited + not connected
       if (
         unvisited.find(node) != unvisited.end() &&
