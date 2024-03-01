@@ -27,6 +27,8 @@
 
 // only used when compiling as standalone test program
 #ifdef PDHKR_TEST
+#include <sstream>
+
 #include "pdhkr/compare.hh"
 #endif  // PDHKR_TEST
 

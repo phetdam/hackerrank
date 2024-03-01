@@ -9,9 +9,10 @@
 #define PDHKR_COMPARE_H_
 
 #include <algorithm>
-#include <fstream>
+#include <istream>
 #include <iomanip>
 #include <iostream>
+#include <ostream>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -19,18 +20,22 @@
 namespace pdhkr {
 
 /**
- * Compare the expected and actual results.
+ * Compare expected values against actual values.
+ *
+ * Mismatches result in error messages being written to the output stream.
  *
  * @tparam T Non-floating type to compare equality for
  *
+ * @param out Output stream to write messages to
  * @param expected Vector of expected valeus
  * @param actual Vector of actual values
- * @param fans Input stream containing expected result
- * @param fout Input stream containing actual result
  * @returns `true` if results match, `false` otherwise
  */
 template <typename T, typename = std::enable_if_t<!std::is_floating_point_v<T>>>
-bool compare(const std::vector<T>& expected, const std::vector<T>& actual)
+bool compare(
+  std::ostream& out,
+  const std::vector<T>& expected,
+  const std::vector<T>& actual)
 {
   // width of the output stream when printing line number. this is enough to
   // hold 2 ^ 26 (67,108,864 lines) so usually no file will have more lines
@@ -65,27 +70,64 @@ bool compare(const std::vector<T>& expected, const std::vector<T>& actual)
 }
 
 /**
- * Compare the expected and actual results.
+ * Compare expected values against actual values.
+ *
+ * Mismatches result in error messages being written to `std::cout`.
+ *
+ * @tparam T Non-floating type to compare equality for
+ *
+ * @param expected Vector of expected valeus
+ * @param actual Vector of actual values
+ * @returns `true` if results match, `false` otherwise
+ */
+template <typename T, typename = std::enable_if_t<!std::is_floating_point_v<T>>>
+inline bool compare(const std::vector<T>& expected, const std::vector<T>& actual)
+{
+  return compare(std::cout, expected, actual);
+}
+
+/**
+ * Compare expected values against actual values.
+ *
+ * Mismatches result in error messages being written to the output stream.
  *
  * @tparam T Type to compare equality for
  *
- * @param fans Input stream containing expected result
- * @param fout Input stream containing actual result
+ * @param out Output stream to write messages to
+ * @param ein Input stream containing expected result
+ * @param ain Input stream containing actual result
  * @returns `true` if results match, `false` otherwise
  */
 template <typename T>
-bool compare(std::ifstream& fans, std::stringstream& fout)
+bool compare(std::ostream& out, std::istream& ein, std::istream& ain)
 {
   // expected values
   std::vector<T> expected;
-  for (std::string line; std::getline(fans, line); )
+  for (std::string line; std::getline(ein, line); )
     expected.push_back(std::stoll(line));
   // actual values
   decltype(expected) actual;
-  for (std::string line; std::getline(fout, line); )
+  for (std::string line; std::getline(ain, line); )
     actual.push_back(std::stoll(line));
   // return result of comparison, writing error messages to stream
   return compare(expected, actual);
+}
+
+/**
+ * Compare expected values against actual values.
+ *
+ * Mismatches result in error messages being written to `std::cout`.
+ *
+ * @tparam T Type to compare equality for
+ *
+ * @param ein Input stream containing expected result
+ * @param ain Input stream containing actual result
+ * @returns `true` if results match, `false` otherwise
+ */
+template <typename T>
+inline bool compare(std::istream& ein, std::istream& ain)
+{
+  return compare<T>(std::cout, ein, ain);
 }
 
 }  // namespace pdhkr
