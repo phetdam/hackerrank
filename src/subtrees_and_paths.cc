@@ -26,16 +26,14 @@
 #include <unordered_map>
 #include <utility>
 
-// TODO: put in shared header
-#ifdef PDHKR_NO_OUTPUT_FILE
-#undef PDHKR_OUTPUT_FILE
-#endif  // PDHKR_NO_OUTPUT_FILE
-
-// only necessary when writing to output file locally
-#ifdef PDHKR_OUTPUT_FILE
-#include <filesystem>
+// only used when compiling as standalone test program
+#ifdef PDHKR_TEST
 #include <fstream>
-#endif  // PDHKR_OUTPUT_FILE
+#include <sstream>
+
+#include "pdhkr/compare.hh"
+#include "pdhkr/testing.hh"
+#endif  // PDHKR_TEST
 
 namespace {
 
@@ -525,28 +523,27 @@ auto max_value(
 
 }  // namespace
 
-// PDHKR_OUTPUT_FILE defined for local builds to enable automated testing
-#if defined(PDHKR_OUTPUT_FILE)
-int main(int argc, char *argv[])
-#else
 int main()
-#endif  // !defined(PDHKR_OUTPUT_FILE)
 {
-  // output stream
-#if defined(PDHKR_OUTPUT_FILE)
-  if (argc != 2) {
-    std::cout << "Usage: " << argv[0] << " OUTFILE < INFILE" << std::endl;
-    return EXIT_SUCCESS;
-  }
-  std::ofstream out{argv[1]};
-  auto& sink = out;
-  // auto& sink
+#if defined(PDHKR_LOCAL_BUILD)
+// building as standalone test program
+#if defined(PDHKR_TEST)
+  // write to stringstream, read from PDHKR_TEST_INPUT
+  std::stringstream fout;
+  std::ifstream fin{PDHKR_TEST_INPUT};
+  // fans provides the expected output
+  std::ifstream fans{PDHKR_TEST_OUTPUT};
 #else
-  auto& sink = std::cout;
-#endif  // !defined(PDHKR_OUTPUT_FILE)
+  auto& fout = std::cout;
+  auto& fin = std::cin;
+#endif  // !defined(PDHKR_TEST)
+#else
+  auto& fout = std::cout;
+  auto& fin = std::cin;
+#endif  // !defined(PDHKR_LOCAL_BUILD))
   // number of tree nodes
   unsigned int n_nodes;
-  std::cin >> n_nodes;
+  fin >> n_nodes;
   // root node only if using tree_node, otherwise use graph
 #if defined(USE_TREE_NODE)
   auto root = std::make_unique<tree_node>(1);
@@ -561,8 +558,8 @@ int main()
 #else
     std::uint32_t id_a, id_b;
 #endif  // !defined(USE_TREE_NODE)
-    std::cin >> id_a;
-    std::cin >> id_b;
+    fin >> id_a;
+    fin >> id_b;
     // if b < a, swap them. we treat a as the parent (lower ID)
     if (id_b < id_a)
       std::swap(id_a, id_b);
@@ -594,12 +591,12 @@ int main()
   }
   // number of queries
   unsigned int n_queries;
-  std::cin >> n_queries;
+  fin >> n_queries;
   // handle queries
   for (decltype(n_queries) i = 0; i < n_queries; i++) {
     // read query type
     std::string query;
-    std::cin >> query;
+    fin >> query;
     // add value to all nodes rooted at subtree
     if (query == "add") {
       // read node ID and value
@@ -609,8 +606,8 @@ int main()
       std::uint32_t id;
 #endif  // !defined(USE_TREE_NODE)
       int value;
-      std::cin >> id;
-      std::cin >> value;
+      fin >> id;
+      fin >> value;
       // find node + add values
 #if defined(USE_TREE_NODE)
       auto& node = get_node(root, id);
@@ -623,15 +620,15 @@ int main()
     else if (query == "max") {
       // read node IDs
       decltype(n_nodes) id_a, id_b;
-      std::cin >> id_a;
-      std::cin >> id_b;
+      fin >> id_a;
+      fin >> id_b;
       // print max value in path
 #if defined(USE_TREE_NODE)
-      sink << max_value(root, id_a, id_b) << std::endl;
+      fout << max_value(root, id_a, id_b) << std::endl;
       // TODO
 #else
       // we assumed 1 is always the root in this problem
-      sink << max_value(graph, 1, id_a, id_b) << std::endl;
+      fout << max_value(graph, 1, id_a, id_b) << std::endl;
 #endif  // !defined(USE_TREE_NODE)
     }
     // unknown, error
@@ -640,5 +637,16 @@ int main()
       return EXIT_FAILURE;
     }
   }
+// if testing, do comparison in the program itself
+#if defined(PDHKR_TEST)
+// return type differs based on implementation
+#if defined(USE_TREE_NODE)
+  using value_type = decltype(max_value(root, 1, 1));
+#else
+  using value_type = decltype(max_value(graph, 1, 1, 1));
+#endif  // !defined(USE_TREE_NODE)
+  return pdhkr::exit_compare<value_type>(fans, fout);
+#else
   return EXIT_SUCCESS;
+#endif  // !defined(PDHKR_TEST)
 }

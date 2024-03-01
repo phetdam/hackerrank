@@ -205,11 +205,10 @@ auto journey_to_moon(unsigned int n, const edge_vector& a_pairs)
   return n_pairs;
 }
 
-// custom main, not the original HackerRank template code
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
-// building as standlone test program
+// building as standalone test program
 #if defined(PDHKR_TEST)
   // write to stringstream, read from PDHKR_TEST_INPUT
   std::stringstream fout;

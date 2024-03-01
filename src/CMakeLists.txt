@@ -30,6 +30,8 @@ pdhkr_add_tests(TARGET journey_to_moon TEST_CASES 0 1r 1s 4 11)
 
 # https://www.hackerrank.com/challenges/subtrees-and-paths/problem
 add_executable(subtrees_and_paths subtrees_and_paths.cc)
+# note: 2, 3 are currently failing
+pdhkr_add_tests(TARGET subtrees_and_paths TEST_CASES 0 1)
 # uncomment to use the tree_node class which only works if the input results in
 # an actual tree. some inputs result in a forest being created.
 # target_compile_definitions(subtrees_and_paths PRIVATE USE_TREE_NODE)

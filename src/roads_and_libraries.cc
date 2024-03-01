@@ -182,7 +182,6 @@ auto roads_and_libraries(int n, int c_lib, int c_road, const edge_vector& cities
   return std::min(static_cast<decltype(total)>(c_lib) * n, total);
 }
 
-// custom main, not the original HackerRank template code
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
