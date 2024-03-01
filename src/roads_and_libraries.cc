@@ -200,6 +200,10 @@ long long roads_and_libraries(
  */
 bool compare_results(std::ifstream& fans, std::stringstream& fout)
 {
+  // width of the output stream when printing line number. this is enough to
+  // hold 2 ^ 32 so usually no file will have more lines than this. note that
+  // this is signed int since std::setw takes a signed int
+  static constexpr auto lineno_width = 10;
   // expected values
   std::vector<long long> expected;
   for (std::string line; std::getline(fans, line); )
@@ -219,17 +223,17 @@ bool compare_results(std::ifstream& fans, std::stringstream& fout)
     if (i >= lower_size) {
       // print depending on who has smaller size
       if (i >= expected.size())
-        std::cerr << std::setw(10) << i << ": ERROR: expected N/A, actual " <<
-          actual[i] << std::endl;
+        std::cerr << std::setw(lineno_width) << i <<
+          ": ERROR: expected N/A, actual " << actual[i] << std::endl;
       else
-        std::cerr << "@\t" << i << ": ERROR: expected " << expected[i] <<
-          ", actual N/A" << std::endl;
+        std::cerr << std::setw(lineno_width) << i <<
+          ": ERROR: expected " << expected[i] << ", actual N/A" << std::endl;
       test_success = false;
     }
     // no size issue and unequal
     else if (expected[i] != actual[i]) {
-      std::cerr << std::setw(10) << i << ": ERROR: expected " << expected[i] <<
-        ", actual " << actual[i] << std::endl;
+      std::cerr << std::setw(lineno_width) << i << ": ERROR: expected " <<
+        expected[i] << ", actual " << actual[i] << std::endl;
       test_success = false;
     }
   }
