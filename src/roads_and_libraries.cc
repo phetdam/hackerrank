@@ -26,6 +26,7 @@
 #include <sstream>
 
 #include "pdhkr/compare.hh"
+#include "pdhkr/testing.hh"
 #endif  // PDHKR_TEST
 
 /**
@@ -177,21 +178,12 @@ long long roads_and_libraries(
   return std::min(static_cast<decltype(total)>(c_lib) * n, total);
 }
 
-// part of HackerRank template code
-////////////////////////////////////////////////////////////////////////////////
 // note: used to be mostly HackerRank template code but i rewrote it
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
 // building as standalone test program
 #if defined(PDHKR_TEST)
-// must have both defined
-#ifndef PDHKR_TEST_INPUT
-#error "PDHKR_TEST_INPUT not defined"
-#endif  // PDHKR_TEST_INPUT
-#ifndef PDHKR_TEST_OUTPUT
-#error "PDHKR_TEST_OUTPUT not defined"
-#endif  // PDHKR_TEST_OUTPUT
   // write to stringstream, read from PDHKR_TEST_INPUT
   std::stringstream fout;
   std::ifstream fin{PDHKR_TEST_INPUT};

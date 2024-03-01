@@ -1,7 +1,7 @@
 /**
- * @file compare.h
+ * @file compare.hh
  * @author Derek Huang
- * @brief C++ header implementing comparisong functions for HackerRank output
+ * @brief C++ header implementing comparison functions for HackerRank output
  * @copyright MIT License
  */
 
