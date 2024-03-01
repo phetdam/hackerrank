@@ -264,7 +264,12 @@ int main()
 #ifdef PDHKR_LOCAL_BUILD
     fout << std::flush;
 #endif  // PDHKR_LOCAL_BUILD
-    return 0;
+// if testing, do comparison in the program itself
+#if defined(PDHKR_TEST)
+  return pdhkr::exit_compare<decltype(journey_to_moon(0, {}))>(fans, fout);
+#else
+  return EXIT_SUCCESS;
+#endif  // !defined(PDHKR_TEST)
 }
 
 // part of HackerRank template code

@@ -110,7 +110,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // renamed from roadsAndLibraries. use long long to prevent overflow for x86
 // and cities type is just vector of pairs instead of vector of vector size 2
-long long roads_and_libraries(
+auto roads_and_libraries(
   int n, int c_lib, int c_road, const std::vector<std::pair<int, int>>& cities)
 {
   // set for unvisited nodes
@@ -237,7 +237,8 @@ int main()
 #endif  // PDHKR_LOCAL_BUILD
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
-  return pdhkr::exit_compare<long long>(fans, fout);
+  using value_type = decltype(roads_and_libraries(0, 0, 0, {}));
+  return pdhkr::exit_compare<value_type>(fans, fout);
 #else
   return EXIT_SUCCESS;
 #endif  // !defined(PDHKR_TEST)
