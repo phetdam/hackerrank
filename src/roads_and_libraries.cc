@@ -223,10 +223,10 @@ bool compare_results(std::ifstream& fans, std::stringstream& fout)
     if (i >= lower_size) {
       // print depending on who has smaller size
       if (i >= expected.size())
-        std::cerr << std::setw(lineno_width) << i <<
+        std::cerr << std::setw(lineno_width) << i + 1 <<
           ": ERROR: expected N/A, actual " << actual[i] << std::endl;
       else
-        std::cerr << std::setw(lineno_width) << i <<
+        std::cerr << std::setw(lineno_width) << i + 1 <<
           ": ERROR: expected " << expected[i] << ", actual N/A" << std::endl;
       test_success = false;
     }
