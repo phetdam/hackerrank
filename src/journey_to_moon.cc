@@ -196,7 +196,7 @@ auto journey_to_moon(unsigned int n, const std::vector<std::vector<int>>& a_pair
       countries.push_back(1);
   }
   // number of pairs we can select
-  unsigned long n_pairs = 0;
+  unsigned long long n_pairs = 0;
   // do double loop through countries to compute total number of pairs
   for (decltype(countries.size()) i = 0; i < countries.size() - 1; i++)
     for (decltype(i) j = i + 1; j < countries.size(); j++)
@@ -246,9 +246,11 @@ int main()
 
     fout << result << "\n";
 // can't close std::cout since it is not a std::ofstream
-#ifndef PDHKR_LOCAL_BUILD
+#if defined(PDHKR_LOCAL_BUILD)
+    fout << std::flush;
+#else
     fout.close();
-#endif  // PDHKR_LOCAL_BUILD
+#endif  // !defined(PDHKR_LOCAL_BUILD)
 
     return 0;
 }
