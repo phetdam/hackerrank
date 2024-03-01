@@ -239,7 +239,7 @@ int main()
 #endif  // !defined(PDHKR_LOCAL_BUILD)
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
-  return (pdhkr::compare<long long>(fans, fout)) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return pdhkr::exit_compare<long long>(fans, fout);
 #else
   return EXIT_SUCCESS;
 #endif  // !defined(PDHKR_TEST)

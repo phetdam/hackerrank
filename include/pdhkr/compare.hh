@@ -9,6 +9,7 @@
 #define PDHKR_COMPARE_H_
 
 #include <algorithm>
+#include <cstdlib>
 #include <istream>
 #include <iomanip>
 #include <iostream>
@@ -129,6 +130,43 @@ template <typename T>
 inline bool compare(std::istream& ein, std::istream& ain)
 {
   return compare<T>(std::cout, ein, ain);
+}
+
+/**
+ * Compare expected values against actual values.
+ *
+ * Mismatches result in error messages being written to the output stream. The
+ * return value of this function is suitable to be returned from `main`.
+ *
+ * @tparam T Type to compare equality for
+ *
+ * @param out Output stream to write messages to
+ * @param ein Input stream containing expected result
+ * @param ain Input stream containing actual result
+ * @returns `EXIT_SUCCESS` if results match, `EXIT_FAILURE` otherwise
+ */
+template <typename T>
+inline int exit_compare(std::ostream& out, std::istream& ein, std::istream& ain)
+{
+  return (compare<T>(out, ein, ain)) ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+/**
+ * Compare expected values against actual values.
+ *
+ * Mismatches result in error messages being written to `std::cout`. The return
+ * value of this function is suitable to be returned from `main`.
+ *
+ * @tparam T Type to compare equality for
+ *
+ * @param ein Input stream containing expected result
+ * @param ain Input stream containing actual result
+ * @returns `EXIT_SUCCESS` if results match, `EXIT_FAILURE` otherwise
+ */
+template <typename T>
+inline auto exit_compare(std::istream& ein, std::istream& ain)
+{
+  return exit_compare<T>(std::cout, ein, ain);
 }
 
 }  // namespace pdhkr
