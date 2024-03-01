@@ -7,11 +7,6 @@
  * URL: https://www.hackerrank.com/challenges/journey-to-the-moon/problem
  */
 
-// part of HackerRank template code
-////////////////////////////////////////////////////////////////////////////////
-// #include <bits/stdc++.h>
-////////////////////////////////////////////////////////////////////////////////
-
 #include <algorithm>
 #include <cstdlib>
 #include <deque>
@@ -23,6 +18,14 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+// only used when compiling as standalone test program
+#ifdef PDHKR_TEST
+#include <sstream>
+
+#include "pdhkr/compare.hh"
+#include "pdhkr/testing.hh"
+#endif  // PDHKR_TEST
 
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
@@ -204,18 +207,30 @@ auto journey_to_moon(unsigned int n, const std::vector<std::vector<int>>& a_pair
   return n_pairs;
 }
 
+// TODO: rewrite the remaining HackerRank template code
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
+// building as standlone test program
+#if defined(PDHKR_TEST)
+  // write to stringstream, read from PDHKR_TEST_INPUT
+  std::stringstream fout;
+  std::ifstream fin{PDHKR_TEST_INPUT};
+  // fans provides the expected output
+  std::ifstream fans{PDHKR_TEST_OUTPUT};
+#else
   // for local run, this is simply std::cout
   auto& fout = std::cout;
+  auto& fin = std::cin;
+#endif  // !defined(PDHKR_TEST)
 #else
-  // as-is from HackerRank. this is unsafe
-    ofstream fout(getenv("OUTPUT_PATH"));
+  // as-is from HackerRank but with std:: prefix. this is unsafe
+  std::ofstream fout(getenv("OUTPUT_PATH"));
+  auto& fin = std::cin;
 #endif  // !defined(PDHKR_LOCAL_BUILD)
 
     string first_multiple_input_temp;
-    getline(cin, first_multiple_input_temp);
+    getline(fin, first_multiple_input_temp);
 
     vector<string> first_multiple_input = split(rtrim(first_multiple_input_temp));
 
@@ -229,7 +244,7 @@ int main()
         astronaut[i].resize(2);
 
         string astronaut_row_temp_temp;
-        getline(cin, astronaut_row_temp_temp);
+        getline(fin, astronaut_row_temp_temp);
 
         vector<string> astronaut_row_temp = split(rtrim(astronaut_row_temp_temp));
 
@@ -245,16 +260,15 @@ int main()
     /*int*/ auto result = journey_to_moon(n, astronaut);
 
     fout << result << "\n";
-// can't close std::cout since it is not a std::ofstream
-#if defined(PDHKR_LOCAL_BUILD)
+// flush if running locally. std::ofstream closed in its dtor
+#ifdef PDHKR_LOCAL_BUILD
     fout << std::flush;
-#else
-    fout.close();
-#endif  // !defined(PDHKR_LOCAL_BUILD)
-
+#endif  // PDHKR_LOCAL_BUILD
     return 0;
 }
 
+// part of HackerRank template code
+////////////////////////////////////////////////////////////////////////////////
 string ltrim(const string &str) {
     string s(str);
 
@@ -293,3 +307,4 @@ vector<string> split(const string &str) {
 
     return tokens;
 }
+////////////////////////////////////////////////////////////////////////////////

@@ -178,7 +178,7 @@ long long roads_and_libraries(
   return std::min(static_cast<decltype(total)>(c_lib) * n, total);
 }
 
-// note: used to be mostly HackerRank template code but i rewrote it
+// custom main, not the original HackerRank template code
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
@@ -231,7 +231,7 @@ int main()
     // write result to output stream with newline (no flush)
     fout << roads_and_libraries(n_cities, lib_cost, road_cost, edges) << "\n";
   }
-  // flush if running locally. std::ofstream closed in its dtor
+// flush if running locally. std::ofstream closed in its dtor
 #ifdef PDHKR_LOCAL_BUILD
   fout << std::flush;
 #endif  // PDHKR_LOCAL_BUILD

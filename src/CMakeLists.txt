@@ -25,7 +25,8 @@ pdhkr_add_tests(TARGET roads_and_libraries TEST_CASES 0 2r 2s 3)
 
 # https://www.hackerrank.com/challenges/journey-to-the-moon/problem
 add_executable(journey_to_moon journey_to_moon.cc)
-# pdhkr_add_tests(TARGET journey_to_moon TEST_CASES 0 1r 1s 4 11)
+# note: maybe disable 11 since it takes nearly 20 seconds to run
+pdhkr_add_tests(TARGET journey_to_moon TEST_CASES 0 1r 1s 4 11)
 
 # https://www.hackerrank.com/challenges/subtrees-and-paths/problem
 add_executable(subtrees_and_paths subtrees_and_paths.cc)
