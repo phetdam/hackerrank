@@ -9,11 +9,6 @@
  * @note Not sure why the URL doesn't match the problem title.
  */
 
-// part of HackerRank template code
-////////////////////////////////////////////////////////////////////////////////
-// #include <bits/stdc++.h>
-////////////////////////////////////////////////////////////////////////////////
-
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
@@ -23,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 // only used when compiling as standalone test program
@@ -31,15 +27,6 @@
 
 #include "pdhkr/compare.hh"
 #endif  // PDHKR_TEST
-
-// part of HackerRank template code
-////////////////////////////////////////////////////////////////////////////////
-using namespace std;
-
-string ltrim(const string &);
-string rtrim(const string &);
-vector<string> split(const string &);
-////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Adjacency list class.
@@ -121,24 +108,25 @@ private:
  */
 ////////////////////////////////////////////////////////////////////////////////
 // renamed from roadsAndLibraries. use long long to prevent overflow for x86
+// and cities type is just vector of pairs instead of vector of vector size 2
 long long roads_and_libraries(
-  int n, int c_lib, int c_road, const std::vector<std::vector<int>>& cities)
+  int n, int c_lib, int c_road, const std::vector<std::pair<int, int>>& cities)
 {
-  // map for unvisited nodes
-  std::unordered_map<int, bool> unvisited;
+  // set for unvisited nodes
+  std::unordered_set<int> unvisited;
   for (auto i = 0; i < n; i++)
-    unvisited[i] = true;
+    unvisited.insert(i);
   // adjacency list of edges (indexed from 0). fill cities as undirected edges
   adjacency_list edges;
   for (const auto& edge : cities) {
-    edges.insert(edge[0] - 1, edge[1] - 1);
-    edges.insert(edge[1] - 1, edge[0] - 1);
+    edges.insert(edge.first - 1, edge.second - 1);
+    edges.insert(edge.second - 1, edge.first - 1);
   }
   // total cost
   long long total = 0;
   // current set of connected nodes. this is used to detect whether or not a
   // new node we are searching from is disconnected from the others
-  std::unordered_map<int, bool> connected;
+  std::unordered_set<int> connected;
   // deque of nodes to search through (start from 0)
   std::deque<int> queue{0};
   // until every city has been connected
@@ -153,8 +141,8 @@ long long roads_and_libraries(
         queue.pop_front();
         return head;
       }
-      // otherwise, need to grab something from the unvisited map
-      return unvisited.begin()->first;
+      // otherwise, need to grab something from the unvisited set
+      return *unvisited.begin();
     }();
     // mark as visited
     unvisited.erase(root);
@@ -165,7 +153,7 @@ long long roads_and_libraries(
         connected.clear();
       // build library + mark root as connected
       total += c_lib;
-      connected[root] = true;
+      connected.insert(root);
     }
     // for each neighbor (can be empty set)
     for (const auto node : edges.neighbors(root)) {
@@ -177,7 +165,7 @@ long long roads_and_libraries(
       ) {
         // increment cost by c_road (build road) + add to connected
         total += c_road;
-        connected[node] = true;
+        connected.insert(node);
         // add nodes to search through
         queue.push_back(node);
       }
@@ -191,6 +179,7 @@ long long roads_and_libraries(
 
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
+// note: used to be mostly HackerRank template code but i rewrote it
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
@@ -214,106 +203,52 @@ int main()
   auto& fin = std::cin;
 #endif  // !defined(PDHKR_TEST)
 #else
-  // as-is from HackerRank. this is unsafe
-    ofstream fout(getenv("OUTPUT_PATH"));
+  // as-is from HackerRank but with std:: prefix. this is unsafe
+  std::ofstream fout(getenv("OUTPUT_PATH"));
   // input stream is std::cin
   auto &fin = std::cin;
 #endif  // !defined(PDHKR_LOCAL_BUILD)
-    string q_temp;
-    // getline calls replaced std::cin with fin
-    getline(fin, q_temp);
-
-    int q = stoi(ltrim(rtrim(q_temp)));
-
-    for (int q_itr = 0; q_itr < q; q_itr++) {
-        string first_multiple_input_temp;
-        getline(fin, first_multiple_input_temp);
-
-        vector<string> first_multiple_input = split(rtrim(first_multiple_input_temp));
-
-        int n = stoi(first_multiple_input[0]);
-
-        int m = stoi(first_multiple_input[1]);
-
-        int c_lib = stoi(first_multiple_input[2]);
-
-        int c_road = stoi(first_multiple_input[3]);
-
-        vector<vector<int>> cities(m);
-
-        for (int i = 0; i < m; i++) {
-            cities[i].resize(2);
-
-            string cities_row_temp_temp;
-            getline(fin, cities_row_temp_temp);
-
-            vector<string> cities_row_temp = split(rtrim(cities_row_temp_temp));
-
-            for (int j = 0; j < 2; j++) {
-                int cities_row_item = stoi(cities_row_temp[j]);
-
-                cities[i][j] = cities_row_item;
-            }
-        }
-
-        // was roadsAndLibraries, i hate camelCase. use auto to deduce return
-        // type when it changes e.g. from long to unsigned long long)
-        auto result = roads_and_libraries(n, c_lib, c_road, cities);
-
-        fout << result << "\n";
+  // number of queries
+  unsigned int n_queries;
+  fin >> n_queries;
+  // handle queries
+  for (decltype(n_queries) i = 0; i < n_queries; i++) {
+    // number of cities
+    unsigned int n_cities;
+    fin >> n_cities;
+    // number of edges connecting cities
+    unsigned int n_edges;
+    fin >> n_edges;
+    // library cost
+    unsigned int lib_cost;
+    fin >> lib_cost;
+    // road cost
+    unsigned int road_cost;
+    fin >> road_cost;
+    // edge vector for this query
+    std::vector<std::pair<int, int>> edges;
+    edges.reserve(n_edges);
+    // read edge and insert
+    for (decltype(n_edges) j = 0; j < n_edges; j++) {
+      decltype(edges)::value_type edge;
+      fin >> edge.first;
+      fin >> edge.second;
+      // actually, moving is just a copy since pair has fundamental types
+      edges.push_back(std::move(edge));
     }
+    // write result to output stream with newline (no flush)
+    fout << roads_and_libraries(n_cities, lib_cost, road_cost, edges) << "\n";
+  }
 // can't close std::cout since it is not a std::ofstream
 #if defined(PDHKR_LOCAL_BUILD)
-    fout << std::flush;
+  fout << std::flush;
 #else
-    fout.close();
+  fout.close();
 #endif  // !defined(PDHKR_LOCAL_BUILD)
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
   return (pdhkr::compare<long long>(fans, fout)) ? EXIT_SUCCESS : EXIT_FAILURE;
 #else
-    return EXIT_SUCCESS;  // original HackerRank template used 0
+  return EXIT_SUCCESS;
 #endif  // !defined(PDHKR_TEST)
 }
-
-// part of HackerRank template code
-////////////////////////////////////////////////////////////////////////////////
-string ltrim(const string &str) {
-    string s(str);
-
-    s.erase(
-        s.begin(),
-        find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace)))
-    );
-
-    return s;
-}
-
-string rtrim(const string &str) {
-    string s(str);
-
-    s.erase(
-        find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(),
-        s.end()
-    );
-
-    return s;
-}
-
-vector<string> split(const string &str) {
-    vector<string> tokens;
-
-    string::size_type start = 0;
-    string::size_type end = 0;
-
-    while ((end = str.find(" ", start)) != string::npos) {
-        tokens.push_back(str.substr(start, end - start));
-
-        start = end + 1;
-    }
-
-    tokens.push_back(str.substr(start));
-
-    return tokens;
-}
-////////////////////////////////////////////////////////////////////////////////
