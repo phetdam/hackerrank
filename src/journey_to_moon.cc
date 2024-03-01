@@ -28,15 +28,6 @@
 #include "pdhkr/testing.hh"
 #endif  // PDHKR_TEST
 
-// part of HackerRank template code
-////////////////////////////////////////////////////////////////////////////////
-using namespace std;
-
-string ltrim(const string &);
-string rtrim(const string &);
-vector<string> split(const string &);
-////////////////////////////////////////////////////////////////////////////////
-
 /**
  * Adjacency list class.
  *
@@ -214,7 +205,7 @@ auto journey_to_moon(unsigned int n, const edge_vector& a_pairs)
   return n_pairs;
 }
 
-// TODO: rewrite the remaining HackerRank template code
+// custom main, not the original HackerRank template code
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
