@@ -39,6 +39,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
+# set CMake module path, enable testing, include pdhkr_add_test function
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+include(CTest)
+include(pdhkr_add_tests)
+
 # compile flags
 if(MSVC)
     add_compile_options(/Wall)
@@ -49,8 +54,5 @@ endif()
 # include directory
 set(PDHKR_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 include_directories(${PDHKR_INCLUDE_DIR})
-
-# for testing
-include(CTest)
 
 add_subdirectory(src)
