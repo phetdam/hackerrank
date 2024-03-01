@@ -201,9 +201,9 @@ long long roads_and_libraries(
 bool compare_results(std::ifstream& fans, std::stringstream& fout)
 {
   // width of the output stream when printing line number. this is enough to
-  // hold 2 ^ 32 so usually no file will have more lines than this. note that
-  // this is signed int since std::setw takes a signed int
-  static constexpr auto lineno_width = 10;
+  // hold 2 ^ 26 (67,108,864 lines) so usually no file will have more lines
+  // than this. this is signed int since std::setw takes a signed int
+  static constexpr auto lineno_width = 8;
   // expected values
   std::vector<long long> expected;
   for (std::string line; std::getline(fans, line); )
@@ -232,7 +232,7 @@ bool compare_results(std::ifstream& fans, std::stringstream& fout)
     }
     // no size issue and unequal
     else if (expected[i] != actual[i]) {
-      std::cerr << std::setw(lineno_width) << i << ": ERROR: expected " <<
+      std::cerr << std::setw(lineno_width) << i + 1 << ": ERROR: expected " <<
         expected[i] << ", actual " << actual[i] << std::endl;
       test_success = false;
     }
@@ -308,8 +308,9 @@ int main()
             }
         }
 
-        // was roadsAndLibraries, i hate camelCase
-        long result = roads_and_libraries(n, c_lib, c_road, cities);
+        // was roadsAndLibraries, i hate camelCase. use auto to deduce return
+        // type when it changes e.g. from long to unsigned long long)
+        auto result = roads_and_libraries(n, c_lib, c_road, cities);
 
         fout << result << "\n";
     }
