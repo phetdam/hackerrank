@@ -95,6 +95,11 @@ private:
   std::unordered_map<int, std::unordered_set<int>> edges_;
 };
 
+/**
+ * Convenience type alias for the vector of int pairs representing edges.
+ */
+using edge_vector = std::vector<std::pair<int, int>>;
+
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
 /*
@@ -110,8 +115,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // renamed from roadsAndLibraries. use long long to prevent overflow for x86
 // and cities type is just vector of pairs instead of vector of vector size 2
-auto roads_and_libraries(
-  int n, int c_lib, int c_road, const std::vector<std::pair<int, int>>& cities)
+auto roads_and_libraries(int n, int c_lib, int c_road, const edge_vector& cities)
 {
   // set for unvisited nodes
   std::unordered_set<int> unvisited;
@@ -197,7 +201,6 @@ int main()
 #else
   // as-is from HackerRank but with std:: prefix. this is unsafe
   std::ofstream fout(getenv("OUTPUT_PATH"));
-  // input stream is std::cin
   auto &fin = std::cin;
 #endif  // !defined(PDHKR_LOCAL_BUILD)
   // number of queries
@@ -218,7 +221,7 @@ int main()
     unsigned int road_cost;
     fin >> road_cost;
     // edge vector for this query
-    std::vector<std::pair<int, int>> edges;
+    edge_vector edges;
     edges.reserve(n_edges);
     // read edge and insert
     for (decltype(n_edges) j = 0; j < n_edges; j++) {

@@ -17,6 +17,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 // only used when compiling as standalone test program
@@ -139,6 +140,11 @@ private:
   std::unordered_map<T, std::unordered_set<T>> edges_;
 };
 
+/**
+ * Convenience type alias for the vector of int pairs representing edges.
+ */
+using edge_vector = std::vector<std::pair<int, int>>;
+
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
 /*
@@ -151,17 +157,18 @@ private:
  */
 ////////////////////////////////////////////////////////////////////////////////
 // renamed from journeyToMoon, return type auto (unsigned long long), type of n
-// now unsigned int, and astronaut parameter renamed to a_pairs. we need a long
-// long return type as for test case 11, the answer overflows 32 bits, and long
-// is still 32 bits when compiling for x86, e.g. PE32 on Windows
-auto journey_to_moon(unsigned int n, const std::vector<std::vector<int>>& a_pairs)
+// now unsigned int, astronaut parameter renamed to a_pairs with type changed
+// to just vector of int pairs. we need a long long return type as for test
+// case 11, the answer overflows 32 bits, and long is still 32 bits when
+// compiling for x86, e.g. when building PE32 binaries on Windows
+auto journey_to_moon(unsigned int n, const edge_vector& a_pairs)
 {
   // adjacency list to hold connection graph between astronauts
   adjacency_list<unsigned int> edges;
   // insert each astronaut pair (edge) as undirected edge
   for (const auto& a_pair : a_pairs) {
-    edges.insert(a_pair[0], a_pair[1]);
-    edges.insert(a_pair[1], a_pair[0]);
+    edges.insert(a_pair.first, a_pair.second);
+    edges.insert(a_pair.second, a_pair.first);
   }
   // set of visited nodes (astronauts)
   std::unordered_set<unsigned int> visited;
@@ -228,42 +235,24 @@ int main()
   std::ofstream fout(getenv("OUTPUT_PATH"));
   auto& fin = std::cin;
 #endif  // !defined(PDHKR_LOCAL_BUILD)
-
-    string first_multiple_input_temp;
-    getline(fin, first_multiple_input_temp);
-
-    vector<string> first_multiple_input = split(rtrim(first_multiple_input_temp));
-
-    int n = stoi(first_multiple_input[0]);
-
-    int p = stoi(first_multiple_input[1]);
-
-    vector<vector<int>> astronaut(p);
-
-    for (int i = 0; i < p; i++) {
-        astronaut[i].resize(2);
-
-        string astronaut_row_temp_temp;
-        getline(fin, astronaut_row_temp_temp);
-
-        vector<string> astronaut_row_temp = split(rtrim(astronaut_row_temp_temp));
-
-        for (int j = 0; j < 2; j++) {
-            int astronaut_row_item = stoi(astronaut_row_temp[j]);
-
-            astronaut[i][j] = astronaut_row_item;
-        }
-    }
-
-    // use auto instead of requiring int result. turns out that for test case
-    // 11 int will overflow since the answer exceeds 32 bits in representation
-    /*int*/ auto result = journey_to_moon(n, astronaut);
-
-    fout << result << "\n";
-// flush if running locally. std::ofstream closed in its dtor
-#ifdef PDHKR_LOCAL_BUILD
-    fout << std::flush;
-#endif  // PDHKR_LOCAL_BUILD
+  // number of astronauts
+  unsigned int n_astronauts;
+  fin >> n_astronauts;
+  // number of astronaut pairs (edges)
+  unsigned int n_pairs;
+  fin >> n_pairs;
+  // edge vector
+  edge_vector edges;
+  edges.reserve(n_pairs);
+  // read edge and insert
+  for (decltype(n_pairs) i = 0; i < n_pairs; i++) {
+    decltype(edges)::value_type edge;
+    fin >> edge.first;
+    fin >> edge.second;
+    edges.push_back(std::move(edge));
+  }
+  // write result to output stream
+  fout << journey_to_moon(n_astronauts, edges) << std::endl;
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
   return pdhkr::exit_compare<decltype(journey_to_moon(0, {}))>(fans, fout);
@@ -271,45 +260,3 @@ int main()
   return EXIT_SUCCESS;
 #endif  // !defined(PDHKR_TEST)
 }
-
-// part of HackerRank template code
-////////////////////////////////////////////////////////////////////////////////
-string ltrim(const string &str) {
-    string s(str);
-
-    s.erase(
-        s.begin(),
-        find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace)))
-    );
-
-    return s;
-}
-
-string rtrim(const string &str) {
-    string s(str);
-
-    s.erase(
-        find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(),
-        s.end()
-    );
-
-    return s;
-}
-
-vector<string> split(const string &str) {
-    vector<string> tokens;
-
-    string::size_type start = 0;
-    string::size_type end = 0;
-
-    while ((end = str.find(" ", start)) != string::npos) {
-        tokens.push_back(str.substr(start, end - start));
-
-        start = end + 1;
-    }
-
-    tokens.push_back(str.substr(start));
-
-    return tokens;
-}
-////////////////////////////////////////////////////////////////////////////////
