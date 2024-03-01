@@ -10,6 +10,10 @@
  * with the expected output read from an output file. The input and output file
  * names are hardcoded at compile time so each program takes zero arguments.
  *
+ * Although it seems wasteful to perform so many repeated compilations, since
+ * each test program is mapped to a single test case and requires no fiddling
+ * with command-line arguments, per-case debugging is simplified.
+ *
  * The following macros are used to control compilation as a test program:
  *
  * `PDHKR_TEST`
