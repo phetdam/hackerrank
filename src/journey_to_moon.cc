@@ -147,9 +147,10 @@ private:
  *  2. 2D_INTEGER_ARRAY astronaut
  */
 ////////////////////////////////////////////////////////////////////////////////
-// renamed from journeyToMoon, return type auto (unsigned long), type of n now
-// unsigned int, and astronaut parameter renamed to a_pairs. we need a long
-// return type as for test case 11, the answer overflows 32 bits
+// renamed from journeyToMoon, return type auto (unsigned long long), type of n
+// now unsigned int, and astronaut parameter renamed to a_pairs. we need a long
+// long return type as for test case 11, the answer overflows 32 bits, and long
+// is still 32 bits when compiling for x86, e.g. PE32 on Windows
 auto journey_to_moon(unsigned int n, const std::vector<std::vector<int>>& a_pairs)
 {
   // adjacency list to hold connection graph between astronauts

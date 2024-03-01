@@ -25,6 +25,12 @@
 #include <unordered_set>
 #include <vector>
 
+// only used when compiling as standalone test program
+#ifdef PDHKR_TEST
+#include <iomanip>
+#include <sstream>
+#endif  // PDHKR_TEST
+
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
 using namespace std;
@@ -113,8 +119,8 @@ private:
  *  4. 2D_INTEGER_ARRAY cities
  */
 ////////////////////////////////////////////////////////////////////////////////
-// renamed from roadsAndLibraries
-long roads_and_libraries(
+// renamed from roadsAndLibraries. use long long to prevent overflow for x86
+long long roads_and_libraries(
   int n, int c_lib, int c_road, const std::vector<std::vector<int>>& cities)
 {
   // map for unvisited nodes
@@ -128,7 +134,7 @@ long roads_and_libraries(
     edges.insert(edge[1] - 1, edge[0] - 1);
   }
   // total cost
-  long total = 0;
+  long long total = 0;
   // current set of connected nodes. this is used to detect whether or not a
   // new node we are searching from is disconnected from the others
   std::unordered_map<int, bool> connected;
@@ -182,25 +188,94 @@ long roads_and_libraries(
   return std::min(static_cast<decltype(total)>(c_lib) * n, total);
 }
 
+#ifdef PDHKR_TEST
+/**
+ * Compare the expected and actual results.
+ *
+ * @note This function only exists when compiling as a test.
+ *
+ * @param fans Input stream containing expected result
+ * @param fout Input stream containing actual result
+ * @returns `true` if results match, `false` otherwise
+ */
+bool compare_results(std::ifstream& fans, std::stringstream& fout)
+{
+  // expected values
+  std::vector<long long> expected;
+  for (std::string line; std::getline(fans, line); )
+    expected.push_back(std::stoll(line));
+  // actual values
+  decltype(expected) actual;
+  for (std::string line; std::getline(fout, line); )
+    actual.push_back(std::stoll(line));
+  // flag to indicate success/failure
+  bool test_success = true;
+  // lower/upper container sizes to help with size reporting if size conflict
+  auto lower_size = std::min(expected.size(), actual.size());
+  auto upper_size = std::max(expected.size(), actual.size());
+  // check each value
+  for (decltype(upper_size) i = 0; i < upper_size; i++) {
+    // if i >= lower_size, error about value missing
+    if (i >= lower_size) {
+      // print depending on who has smaller size
+      if (i >= expected.size())
+        std::cerr << std::setw(10) << i << ": ERROR: expected N/A, actual " <<
+          actual[i] << std::endl;
+      else
+        std::cerr << "@\t" << i << ": ERROR: expected " << expected[i] <<
+          ", actual N/A" << std::endl;
+      test_success = false;
+    }
+    // no size issue and unequal
+    else if (expected[i] != actual[i]) {
+      std::cerr << std::setw(10) << i << ": ERROR: expected " << expected[i] <<
+        ", actual " << actual[i] << std::endl;
+      test_success = false;
+    }
+  }
+  return test_success;
+}
+#endif  // PDHKR_TEST
+
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
 int main()
 {
 #if defined(PDHKR_LOCAL_BUILD)
+// building as standalone test program
+#if defined(PDHKR_TEST)
+// must have both defined
+#ifndef PDHKR_TEST_INPUT
+#error "PDHKR_TEST_INPUT not defined"
+#endif  // PDHKR_TEST_INPUT
+#ifndef PDHKR_TEST_OUTPUT
+#error "PDHKR_TEST_OUTPUT not defined"
+#endif  // PDHKR_TEST_OUTPUT
+  // write to stringstream, read from PDHKR_TEST_INPUT
+  std::stringstream fout;
+  std::ifstream fin{PDHKR_TEST_INPUT};
+  // fans provides the expected output
+  std::ifstream fans{PDHKR_TEST_OUTPUT};
+#else
   // for local run, this is simply std::cout
   auto& fout = std::cout;
+  auto& fin = std::cin;
+#endif  // !defined(PDHKR_TEST)
 #else
   // as-is from HackerRank. this is unsafe
     ofstream fout(getenv("OUTPUT_PATH"));
+  // input stream is std::cin
+  auto &fin = std::cin;
 #endif  // !defined(PDHKR_LOCAL_BUILD)
     string q_temp;
-    getline(cin, q_temp);
+    // getline calls replaced std::cin with fin
+    getline(fin, q_temp);
 
     int q = stoi(ltrim(rtrim(q_temp)));
 
     for (int q_itr = 0; q_itr < q; q_itr++) {
         string first_multiple_input_temp;
-        getline(cin, first_multiple_input_temp);
+        getline(fin, first_multiple_input_temp);
 
         vector<string> first_multiple_input = split(rtrim(first_multiple_input_temp));
 
@@ -218,7 +293,7 @@ int main()
             cities[i].resize(2);
 
             string cities_row_temp_temp;
-            getline(cin, cities_row_temp_temp);
+            getline(fin, cities_row_temp_temp);
 
             vector<string> cities_row_temp = split(rtrim(cities_row_temp_temp));
 
@@ -235,13 +310,21 @@ int main()
         fout << result << "\n";
     }
 // can't close std::cout since it is not a std::ofstream
-#ifndef PDHKR_LOCAL_BUILD
+#if defined(PDHKR_LOCAL_BUILD)
+    fout << std::flush;
+#else
     fout.close();
-#endif  // PDHKR_LOCAL_BUILD
-
-    return 0;
+#endif  // !defined(PDHKR_LOCAL_BUILD)
+// if testing, do comparison in the program itself
+#if defined(PDHKR_TEST)
+  return (compare_results(fans, fout)) ? EXIT_SUCCESS : EXIT_FAILURE;
+#else
+    return EXIT_SUCCESS;  // original HackerRank template used 0
+#endif  // !defined(PDHKR_TEST)
 }
 
+// part of HackerRank template code
+////////////////////////////////////////////////////////////////////////////////
 string ltrim(const string &str) {
     string s(str);
 
