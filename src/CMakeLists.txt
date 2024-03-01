@@ -49,7 +49,6 @@ target_compile_definitions(
 add_test(NAME roads_and_libraries_0 COMMAND roads_and_libraries_0)
 
 add_executable(roads_and_libraries_2s roads_and_libraries.cc)
-# conditionally compile the same source
 target_compile_definitions(
     roads_and_libraries_2s PRIVATE
     PDHKR_TEST
@@ -57,8 +56,17 @@ target_compile_definitions(
     PDHKR_TEST_INPUT="${CMAKE_SOURCE_DIR}/data/roads_and_libraries/2s.in"
     PDHKR_TEST_OUTPUT="${CMAKE_SOURCE_DIR}/data/roads_and_libraries/2s.out"
 )
-# also register as CTest test. WORKING_DIRECTORY optional for absolute path
 add_test(NAME roads_and_libraries_2s COMMAND roads_and_libraries_2s)
+
+add_executable(roads_and_libraries_3 roads_and_libraries.cc)
+target_compile_definitions(
+    roads_and_libraries_3 PRIVATE
+    PDHKR_TEST
+    # quotes are needed to pass a string value
+    PDHKR_TEST_INPUT="${CMAKE_SOURCE_DIR}/data/roads_and_libraries/3.in"
+    PDHKR_TEST_OUTPUT="${CMAKE_SOURCE_DIR}/data/roads_and_libraries/3.out"
+)
+add_test(NAME roads_and_libraries_3 COMMAND roads_and_libraries_3)
 
 # https://www.hackerrank.com/challenges/journey-to-the-moon/problem
 add_executable(journey_to_moon journey_to_moon.cc)
