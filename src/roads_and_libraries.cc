@@ -231,12 +231,10 @@ int main()
     // write result to output stream with newline (no flush)
     fout << roads_and_libraries(n_cities, lib_cost, road_cost, edges) << "\n";
   }
-// can't close std::cout since it is not a std::ofstream
-#if defined(PDHKR_LOCAL_BUILD)
+  // flush if running locally. std::ofstream closed in its dtor
+#ifdef PDHKR_LOCAL_BUILD
   fout << std::flush;
-#else
-  fout.close();
-#endif  // !defined(PDHKR_LOCAL_BUILD)
+#endif  // PDHKR_LOCAL_BUILD
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
   return pdhkr::exit_compare<long long>(fans, fout);
