@@ -33,6 +33,12 @@ endif()
 # see http://tinyurl.com/mr3t7vfe for HackerRank environment documentation
 set(CMAKE_CXX_STANDARD 20)
 
+# put all build artifacts in top-level build directory. multi-config generators
+# like Visual Studio will put a per-config subdirectory as well
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 # compile flags
 if(MSVC)
     add_compile_options(/Wall)
@@ -40,12 +46,11 @@ else()
     add_compile_options(-Wall)
 endif()
 
-# put all build artifacts in top-level build directory. multi-config generators
-# like Visual Studio will put a per-config subdirectory as well
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+# include directory
+set(PDHKR_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+include_directories(${PDHKR_INCLUDE_DIR})
 
+# for testing
 include(CTest)
 
 add_subdirectory(src)

@@ -27,8 +27,7 @@
 
 // only used when compiling as standalone test program
 #ifdef PDHKR_TEST
-#include <iomanip>
-#include <sstream>
+#include "pdhkr/compare.hh"
 #endif  // PDHKR_TEST
 
 // part of HackerRank template code
@@ -188,59 +187,6 @@ long long roads_and_libraries(
   return std::min(static_cast<decltype(total)>(c_lib) * n, total);
 }
 
-#ifdef PDHKR_TEST
-/**
- * Compare the expected and actual results.
- *
- * @note This function only exists when compiling as a test.
- *
- * @param fans Input stream containing expected result
- * @param fout Input stream containing actual result
- * @returns `true` if results match, `false` otherwise
- */
-bool compare_results(std::ifstream& fans, std::stringstream& fout)
-{
-  // width of the output stream when printing line number. this is enough to
-  // hold 2 ^ 26 (67,108,864 lines) so usually no file will have more lines
-  // than this. this is signed int since std::setw takes a signed int
-  static constexpr auto lineno_width = 8;
-  // expected values
-  std::vector<long long> expected;
-  for (std::string line; std::getline(fans, line); )
-    expected.push_back(std::stoll(line));
-  // actual values
-  decltype(expected) actual;
-  for (std::string line; std::getline(fout, line); )
-    actual.push_back(std::stoll(line));
-  // flag to indicate success/failure
-  bool test_success = true;
-  // lower/upper container sizes to help with size reporting if size conflict
-  auto lower_size = std::min(expected.size(), actual.size());
-  auto upper_size = std::max(expected.size(), actual.size());
-  // check each value
-  for (decltype(upper_size) i = 0; i < upper_size; i++) {
-    // if i >= lower_size, error about value missing
-    if (i >= lower_size) {
-      // print depending on who has smaller size
-      if (i >= expected.size())
-        std::cerr << std::setw(lineno_width) << i + 1 <<
-          ": ERROR: expected N/A, actual " << actual[i] << std::endl;
-      else
-        std::cerr << std::setw(lineno_width) << i + 1 <<
-          ": ERROR: expected " << expected[i] << ", actual N/A" << std::endl;
-      test_success = false;
-    }
-    // no size issue and unequal
-    else if (expected[i] != actual[i]) {
-      std::cerr << std::setw(lineno_width) << i + 1 << ": ERROR: expected " <<
-        expected[i] << ", actual " << actual[i] << std::endl;
-      test_success = false;
-    }
-  }
-  return test_success;
-}
-#endif  // PDHKR_TEST
-
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
 int main()
@@ -322,7 +268,7 @@ int main()
 #endif  // !defined(PDHKR_LOCAL_BUILD)
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
-  return (compare_results(fans, fout)) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return (pdhkr::compare<long long>(fans, fout)) ? EXIT_SUCCESS : EXIT_FAILURE;
 #else
     return EXIT_SUCCESS;  // original HackerRank template used 0
 #endif  // !defined(PDHKR_TEST)
