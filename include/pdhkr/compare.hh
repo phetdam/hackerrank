@@ -51,6 +51,7 @@ bool compare(
     // if i >= lower_size, error about value missing
     if (i >= lower_size) {
       // print depending on who has smaller size
+      // TODO: print "ERROR" in red text
       if (i >= expected.size())
         std::cout << std::setw(lineno_width) << i + 1 <<
           ": ERROR: expected N/A, actual " << actual[i] << std::endl;
