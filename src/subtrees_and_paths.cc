@@ -467,14 +467,12 @@ auto max_value(
   std::uint32_t id_a,
   std::uint32_t id_b)
 {
-  // min value (failure)
-  static constexpr auto min_value = std::numeric_limits<int>::min();
   // find paths for A and B
   auto path_a = compute_path(graph, root, id_a);
   auto path_b = compute_path(graph, root, id_b);
   // if either is empty, return min
   if (path_a.empty() || path_b.empty())
-    return min_value;
+    return std::numeric_limits<int>::min();
   // otherwise, find closest ancestor. this is originally the root
   auto ancestor = root;
   // iterators for the two paths

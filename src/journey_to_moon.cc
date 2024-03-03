@@ -132,9 +132,9 @@ private:
 };
 
 /**
- * Convenience type alias for the vector of int pairs representing edges.
+ * Convenience type alias for the vector of pairs representing edges.
  */
-using edge_vector = std::vector<std::pair<int, int>>;
+using edge_vector = std::vector<std::pair<unsigned int, unsigned int>>;
 
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
@@ -149,22 +149,22 @@ using edge_vector = std::vector<std::pair<int, int>>;
 ////////////////////////////////////////////////////////////////////////////////
 // renamed from journeyToMoon, return type auto (unsigned long long), type of n
 // now unsigned int, astronaut parameter renamed to a_pairs with type changed
-// to just vector of int pairs. we need a long long return type as for test
+// to vector of unsigned int pairs. we need a long long return type as for test
 // case 11, the answer overflows 32 bits, and long is still 32 bits when
 // compiling for x86, e.g. when building PE32 binaries on Windows
 auto journey_to_moon(unsigned int n, const edge_vector& a_pairs)
 {
   // adjacency list to hold connection graph between astronauts
-  adjacency_list<unsigned int> edges;
+  adjacency_list<decltype(n)> edges;
   // insert each astronaut pair (edge) as undirected edge
   for (const auto& a_pair : a_pairs) {
     edges.insert(a_pair.first, a_pair.second);
     edges.insert(a_pair.second, a_pair.first);
   }
   // set of visited nodes (astronauts)
-  std::unordered_set<unsigned int> visited;
+  std::unordered_set<decltype(n)> visited;
   // vector where index is country, value is astronauts from said country
-  std::vector<unsigned int> countries;
+  std::vector<decltype(n)> countries;
   // perform BFS for each unvisited node to fill in countries
   for (const auto& [node, neighbors] : edges) {
     // skip if visited
@@ -173,7 +173,7 @@ auto journey_to_moon(unsigned int n, const edge_vector& a_pairs)
     // otherwise, allocate new country
     countries.push_back(0);
     // perform BFS
-    std::deque<unsigned int> queue{node};
+    std::deque<decltype(n)> queue{node};
     while (queue.size()) {
       // get + pop current
       auto cur = queue.front();

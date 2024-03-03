@@ -48,7 +48,7 @@ public:
    * @param start ID of start node
    * @param end ID of end node
    */
-  void insert(int start, int end)
+  void insert(unsigned int start, unsigned int end)
   {
     // create map if it does not exist
     if (edges_.find(start) == edges_.end())
@@ -64,7 +64,7 @@ public:
    * @param start ID of start node
    * @param end ID of end node
    */
-  bool contains(int start, int end) const
+  bool contains(unsigned int start, unsigned int end) const
   {
     // get iterator to the list of nodes start is connected to
     auto nodes_it = edges_.find(start);
@@ -80,7 +80,7 @@ public:
    *
    * If no neighbor set exists then an empty one is returned.
    */
-  const auto& neighbors(int start) const
+  const auto& neighbors(unsigned int start) const
   {
     auto it = edges_.find(start);
     // couldn't find, return reference to static
@@ -92,13 +92,13 @@ public:
   }
 
 private:
-  std::unordered_map<int, std::unordered_set<int>> edges_;
+  std::unordered_map<unsigned int, std::unordered_set<unsigned int>> edges_;
 };
 
 /**
  * Convenience type alias for the vector of int pairs representing edges.
  */
-using edge_vector = std::vector<std::pair<int, int>>;
+using edge_vector = std::vector<std::pair<unsigned int, unsigned int>>;
 
 // part of HackerRank template code
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,13 +113,18 @@ using edge_vector = std::vector<std::pair<int, int>>;
  *  4. 2D_INTEGER_ARRAY cities
  */
 ////////////////////////////////////////////////////////////////////////////////
-// renamed from roadsAndLibraries. use long long to prevent overflow for x86
-// and cities type is just vector of pairs instead of vector of vector size 2
-auto roads_and_libraries(int n, int c_lib, int c_road, const edge_vector& cities)
+// renamed from roadsAndLibraries. use unsigned long long to prevent overflow
+// for x86 and cities type is just vector of pairs instead of vector of vector
+// size 2. parameters and return are all unsigned now.
+auto roads_and_libraries(
+  unsigned int n,
+  unsigned int c_lib,
+  unsigned int c_road,
+  const edge_vector& cities)
 {
   // set for unvisited nodes
-  std::unordered_set<int> unvisited;
-  for (auto i = 0; i < n; i++)
+  std::unordered_set<decltype(n)> unvisited;
+  for (decltype(n) i = 0; i < n; i++)
     unvisited.insert(i);
   // adjacency list of edges (indexed from 0). fill cities as undirected edges
   adjacency_list edges;
@@ -128,12 +133,12 @@ auto roads_and_libraries(int n, int c_lib, int c_road, const edge_vector& cities
     edges.insert(edge.second - 1, edge.first - 1);
   }
   // total cost
-  long long total = 0;
+  unsigned long long total = 0;
   // current set of connected nodes. this is used to detect whether or not a
   // new node we are searching from is disconnected from the others
-  std::unordered_set<int> connected;
+  std::unordered_set<decltype(n)> connected;
   // deque of nodes to search through (start from 0)
-  std::deque<int> queue{0};
+  std::deque<decltype(n)> queue{0};
   // until every city has been connected
   while (queue.size() || unvisited.size()) {
     // starting node for BFS. since road costs are the same (c_road), it
