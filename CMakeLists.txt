@@ -46,7 +46,13 @@ include(pdhkr_add_tests)
 
 # compile flags
 if(MSVC)
-    add_compile_options(/Wall)
+    add_compile_options(
+        /Wall
+        # warn about unreferenced inline function being removed
+        /wd4514
+        # warn about Spectre mitigation for memory load with /QSpectre
+        /wd5045
+    )
 else()
     add_compile_options(-Wall)
 endif()
