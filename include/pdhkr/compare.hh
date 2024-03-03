@@ -5,8 +5,8 @@
  * @copyright MIT License
  */
 
-#ifndef PDHKR_COMPARE_H_
-#define PDHKR_COMPARE_H_
+#ifndef PDHKR_COMPARE_HH_
+#define PDHKR_COMPARE_HH_
 
 #include <algorithm>
 #include <cstdlib>
@@ -171,4 +171,4 @@ inline auto exit_compare(std::istream& ein, std::istream& ain)
 
 }  // namespace pdhkr
 
-#endif  // PDHKR_COMPARE_H_
+#endif  // PDHKR_COMPARE_HH_

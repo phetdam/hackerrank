@@ -30,10 +30,14 @@
  * When this header is included when `PDHKR_TEST` is defined, preprocessor
  * checks are used to ensure that `PDHKR_TEST_INPUT` and `PDHKR_TEST_OUTPUT`
  * are both defined. If not, an error is emitted during preprocessing.
+ *
+ * Note that `PDHKR_TEST` should be considered to have higher priority than
+ * `PDHKR_LOCAL`. Therefore, if both macros are defined, code should be
+ * structured such that `PDHKR_TEST` code is selected over `PDHKR_LOCAL` code.
  */
 
-#ifndef PDHKR_TESTING_H_
-#define PDHKR_TESTING_H_
+#ifndef PDHKR_TESTING_HH_
+#define PDHKR_TESTING_HH_
 
 #include "pdhkr/compare.hh"
 
@@ -48,4 +52,4 @@
 #endif  // PDHKR_TEST_OUTPUT
 #endif  // PDHKR_TEST
 
-#endif  // PDHKR_TESTING_H_
+#endif  // PDHKR_TESTING_HH_
