@@ -13,7 +13,9 @@
 #include <istream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -54,16 +56,16 @@ bool compare(
       // print depending on who has smaller size
       // TODO: print "ERROR" in red text
       if (i >= expected.size())
-        std::cout << std::setw(lineno_width) << i + 1 <<
+        out << std::setw(lineno_width) << i + 1 <<
           ": ERROR: expected N/A, actual " << actual[i] << std::endl;
       else
-        std::cout << std::setw(lineno_width) << i + 1 <<
+        out << std::setw(lineno_width) << i + 1 <<
           ": ERROR: expected " << expected[i] << ", actual N/A" << std::endl;
       test_success = false;
     }
     // no size issue and unequal
     else if (expected[i] != actual[i]) {
-      std::cout << std::setw(lineno_width) << i + 1 << ": ERROR: expected " <<
+      out << std::setw(lineno_width) << i + 1 << ": ERROR: expected " <<
         expected[i] << ", actual " << actual[i] << std::endl;
       test_success = false;
     }
@@ -89,6 +91,93 @@ inline bool compare(const std::vector<T>& expected, const std::vector<T>& actual
 }
 
 /**
+ * Convert a string to the specified integral type.
+ *
+ * If `T` is not one of the standard arithmetic types, a
+ * `std::numeric_limits<T>` specialization should be added.
+ *
+ * @tparam T Integral type
+ */
+template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+T to_number(const std::string& str, int base = 0)
+{
+  // specific integral types
+  if constexpr (std::is_same_v<T, int>)
+    return std::stoi(str, nullptr, base);
+  else if constexpr (std::is_same_v<T, long>)
+    return std::stol(str, nullptr, base);
+  else if constexpr (std::is_same_v<T, long long>)
+    return std::stoll(str, nullptr, base);
+  else if constexpr (std::is_same_v<T, unsigned long>)
+    return std::stoul(str, nullptr, base);
+  else if constexpr (std::is_same_v<T, unsigned long long>)
+    return std::stoull(str, nullptr, base);
+  // unknown unsigned integral type
+  else if constexpr (std::is_unsigned_v<T>) {
+    auto val = std::stoull(str, nullptr, base);
+    // error if exceeds limits of specified type
+    if (val > std::numeric_limits<T>::max())
+      throw std::overflow_error{
+        "Value above unsigned type maximum " +
+        std::to_string(static_cast<decltype(val)>(std::numeric_limits<T>::max()))
+      };
+    return static_cast<T>(val);
+  }
+  // unknown, assumed signed integral type
+  else {
+    auto val = std::stoll(str, nullptr, base);
+    // error if exceeds limits of specified type
+    if (val < std::numeric_limits<T>::min())
+      throw std::overflow_error{
+        "Value below signed type minimum " +
+        std::to_string(static_cast<decltype(val)>(std::numeric_limits<T>::min()))
+      };
+    if (val > std::numeric_limits<T>::max())
+      throw std::overflow_error{
+        "Value above signed type maximum " +
+        std::to_string(static_cast<decltype(val)>(std::numeric_limits<T>::max()))
+      };
+    return static_cast<T>(val);
+  }
+}
+
+/**
+ * Convert a string to the specified floating type.
+ *
+ * If `T` is not one of the standard arithmetic types, a
+ * `std::numeric_limits<T>` specialization should be added.
+ *
+ * @tparam T Floating type
+ */
+template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+T to_number(const std::string& str)
+{
+  // specific floating types
+  if constexpr (std::is_same_v<T, float>)
+    return std::stof(str);
+  else if constexpr (std::is_same_v<T, double>)
+    return std::stod(str);
+  else if constexpr (std::is_same_v<T, long double>)
+    return std::stold(str);
+  // unknown floating type
+  else {
+    auto val = std::stold(str);
+    // error if exceeds limits of specified type
+    if (val < std::numeric_limits<T>::lowest())
+      throw std::overflow_error{
+        "Value below floating type minimum " +
+        std::to_string(static_cast<decltype(val)>(std::numeric_limits<T>::lowest()))
+      };
+    if (val > std::numeric_limits<T>::max())
+      throw std::overflow_error{
+        "Value below floating type maximum " +
+        std::to_string(static_cast<decltype(val)>(std::numeric_limits<T>::max()))
+      };
+    return static_cast<T>(val);
+  }
+}
+
+/**
  * Compare expected values against actual values.
  *
  * Mismatches result in error messages being written to the output stream.
@@ -106,13 +195,13 @@ bool compare(std::ostream& out, std::istream& ein, std::istream& ain)
   // expected values
   std::vector<T> expected;
   for (std::string line; std::getline(ein, line); )
-    expected.push_back(std::stoll(line));
+    expected.push_back(to_number<T>(line));
   // actual values
   decltype(expected) actual;
   for (std::string line; std::getline(ain, line); )
-    actual.push_back(std::stoll(line));
+    actual.push_back(to_number<T>(line));
   // return result of comparison, writing error messages to stream
-  return compare(expected, actual);
+  return compare(out, expected, actual);
 }
 
 /**
