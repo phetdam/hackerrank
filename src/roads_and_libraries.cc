@@ -184,7 +184,6 @@ auto roads_and_libraries(int n, int c_lib, int c_road, const edge_vector& cities
 
 int main()
 {
-#if defined(PDHKR_LOCAL_BUILD)
 // building as standalone test program
 #if defined(PDHKR_TEST)
   // write to stringstream, read from PDHKR_TEST_INPUT
@@ -192,16 +191,16 @@ int main()
   std::ifstream fin{PDHKR_TEST_INPUT};
   // fans provides the expected output
   std::ifstream fans{PDHKR_TEST_OUTPUT};
-#else
+// local run
+#elif defined(PDHKR_LOCAL)
   // for local run, this is simply std::cout
   auto& fout = std::cout;
   auto& fin = std::cin;
-#endif  // !defined(PDHKR_TEST)
 #else
   // as-is from HackerRank but with std:: prefix. this is unsafe
   std::ofstream fout(getenv("OUTPUT_PATH"));
   auto &fin = std::cin;
-#endif  // !defined(PDHKR_LOCAL_BUILD)
+#endif  // !defined(PDHKR_TEST) && !defined(PDHKR_LOCAL)
   // number of queries
   unsigned int n_queries;
   fin >> n_queries;
@@ -234,9 +233,9 @@ int main()
     fout << roads_and_libraries(n_cities, lib_cost, road_cost, edges) << "\n";
   }
 // flush if running locally. std::ofstream closed in its dtor
-#ifdef PDHKR_LOCAL_BUILD
+#if defined(PDHKR_LOCAL) || defined(PDHKR_TEST)
   fout << std::flush;
-#endif  // PDHKR_LOCAL_BUILD
+#endif  // !defined(PDHKR_LOCAL) && !defined(PDHKR_TEST)
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
   using value_type = decltype(roads_and_libraries(0, 0, 0, {}));

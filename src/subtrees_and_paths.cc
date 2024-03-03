@@ -525,7 +525,6 @@ auto max_value(
 
 int main()
 {
-#if defined(PDHKR_LOCAL_BUILD)
 // building as standalone test program
 #if defined(PDHKR_TEST)
   // write to stringstream, read from PDHKR_TEST_INPUT
@@ -533,14 +532,11 @@ int main()
   std::ifstream fin{PDHKR_TEST_INPUT};
   // fans provides the expected output
   std::ifstream fans{PDHKR_TEST_OUTPUT};
+// local and HackerRank builds both use std::cin, std::cout
 #else
   auto& fout = std::cout;
   auto& fin = std::cin;
 #endif  // !defined(PDHKR_TEST)
-#else
-  auto& fout = std::cout;
-  auto& fin = std::cin;
-#endif  // !defined(PDHKR_LOCAL_BUILD))
   // number of tree nodes
   unsigned int n_nodes;
   fin >> n_nodes;

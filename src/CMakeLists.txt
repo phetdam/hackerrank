@@ -1,12 +1,9 @@
 cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 
-# by default, PDHKR_OUTPUT_FILE is defined so that each program will write
-# their output to a file. this is useful for testing and should be overridden
-# on a per-target basis by defining PDHKR_NO_OUTPUT_FILE
-# add_compile_definitions(PDHKR_OUTPUT_FILE)
 # all programs compile with this defined. this allows us to add extra checking
-# or features that are completely disabled when compiled on HackerRank
-add_compile_definitions(PDHKR_LOCAL_BUILD)
+# or features that are completely disabled when compiled on HackerRank.
+# note: test programs define PDHKR_TEST which takes precedence over PDHKR_LOCAL
+add_compile_definitions(PDHKR_LOCAL)
 
 # https://www.hackerrank.com/challenges/torque-and-development/problem
 add_executable(roads_and_libraries roads_and_libraries.cc)
