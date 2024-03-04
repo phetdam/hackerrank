@@ -180,7 +180,8 @@ T to_number(const std::string& str)
 /**
  * Compare expected values against actual values.
  *
- * Mismatches result in error messages being written to the output stream.
+ * Each value must be on its own line which is typical for most HackerRank
+ * problems. Mismatches result in messages being written to the output stream.
  *
  * @tparam T Type to compare equality for
  *
@@ -207,7 +208,8 @@ bool compare(std::ostream& out, std::istream& ein, std::istream& ain)
 /**
  * Compare expected values against actual values.
  *
- * Mismatches result in error messages being written to `std::cout`.
+ * Each value must be on its own line which is typical for most HackerRank
+ * problems. Mismatches result in messages being written to `std::cout`.
  *
  * @tparam T Type to compare equality for
  *
@@ -224,8 +226,9 @@ inline bool compare(std::istream& ein, std::istream& ain)
 /**
  * Compare expected values against actual values.
  *
- * Mismatches result in error messages being written to the output stream. The
- * return value of this function is suitable to be returned from `main`.
+ * Each value must be on its own line which is typical for most HackerRank
+ * problems. Mismatches result in error messages being written to the output
+ * stream. The return value of this function can be returned from `main`.
  *
  * @tparam T Type to compare equality for
  *
@@ -243,8 +246,9 @@ inline int exit_compare(std::ostream& out, std::istream& ein, std::istream& ain)
 /**
  * Compare expected values against actual values.
  *
- * Mismatches result in error messages being written to `std::cout`. The return
- * value of this function is suitable to be returned from `main`.
+ * Each value must be on its own line which is typical for most HackerRank
+ * problems. Mismatches result in error messages being written to `std::cout`.
+ * The return value of this function can be returned from `main`.
  *
  * @tparam T Type to compare equality for
  *
