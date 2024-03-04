@@ -32,5 +32,7 @@ pdhkr_add_tests(TARGET subtrees_and_paths TEST_CASES 0 1)
 # uncomment to use the tree_node class which only works if the input results in
 # an actual tree. some inputs result in a forest being created.
 # target_compile_definitions(subtrees_and_paths PRIVATE USE_TREE_NODE)
-# uncomment to have program allow writing to output file
-# target_compile_definitions(subtrees_and_paths PRIVATE PDHKR_OUTPUT_FILE)
+
+# https://www.hackerrank.com/challenges/merge-two-sorted-linked-lists/problem
+add_executable(merge_sorted_linked_lists merge_sorted_linked_lists.cc)
+pdhkr_add_tests(TARGET merge_sorted_linked_lists TEST_CASES 0 5)
