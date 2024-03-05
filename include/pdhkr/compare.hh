@@ -166,13 +166,13 @@ bool compare(
               std::setw(compare_lineno_width) << j + 1 << "/" << size_label <<
               ": expected N/A, actual " << actual[i][j] << std::endl;
           else
-            out << std::setw(compare_lineno_width) << i + 1 << ": index " <<
+            out << std::setw(compare_lineno_width) << i + 1 << ": " <<
               std::setw(compare_lineno_width) << j + 1 << "/" << size_label <<
               ": expected " << expected[i][j] << ", actual N/A" << std::endl;
         }
         // no size issue and unequal values
         else if (expected[i][j] != actual[i][j])
-          out << std::setw(compare_lineno_width) << i + 1 << ": index " <<
+          out << std::setw(compare_lineno_width) << i + 1 << ": " <<
             std::setw(compare_lineno_width) << j + 1 << "/" << size_label <<
             ": expected " << expected[i][j] << ", actual " << actual[i][j] <<
             std::endl;
