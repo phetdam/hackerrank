@@ -99,7 +99,7 @@ private:
  *
  * The input format is as described in the problem.
  *
- * @note This implementation is modified from `merge_sorted_linked_lists.cc`.
+ * @note This implementation is copied from `merge_sorted_linked_lists.cc`.
  *
  * @param in Input stream
  */
