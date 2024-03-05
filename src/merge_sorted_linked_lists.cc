@@ -188,7 +188,7 @@ auto create_list(std::istream& in)
   // linked list + pointer to last node
   std::unique_ptr<list_node<decltype(value)>> head;
   auto tail = head.get();
-  // read inputs and insert into first linked list
+  // read inputs and insert into linked list
   in >> list_len;
   for (decltype(list_len) j = 0; j < list_len; j++) {
     // read and create node
