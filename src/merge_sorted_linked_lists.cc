@@ -29,6 +29,8 @@ namespace {
 
 /**
  * Linked list node with unique ownership semantics.
+ *
+ * @tparam T Node value type
  */
 template <typename T>
 class list_node {
