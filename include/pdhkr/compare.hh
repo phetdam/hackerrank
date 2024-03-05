@@ -63,8 +63,12 @@ bool compare(
           ": ERROR: expected " << expected[i] << ", actual N/A" << std::endl;
       test_success = false;
     }
+    // no size issue and values equal
+    // TODO: print "OK" in green text
+    else if (expected[i] == actual[i])
+      out << std::setw(lineno_width) << i + 1 << ": OK" << std::endl;
     // no size issue and unequal
-    else if (expected[i] != actual[i]) {
+    else {
       out << std::setw(lineno_width) << i + 1 << ": ERROR: expected " <<
         expected[i] << ", actual " << actual[i] << std::endl;
       test_success = false;
