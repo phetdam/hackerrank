@@ -289,7 +289,15 @@ int main()
     auto head_b = create_list(fin);
     // create merged list + print
     auto head = merge_lists(head_a, head_b);
-    std::cout << decltype(head)::element_type::full() << head << std::endl;
+    fout << decltype(head)::element_type::full() << head << std::endl;
   }
+// if testing, do comparison in the program itself
+#if defined(PDHKR_TEST)
+  // value_type type member from the list_node template
+  using value_type = decltype(create_list(fin))::element_type::value_type;
+  // using std::vector<value_type> triggers the vector compare routine
+  return pdhkr::exit_compare<std::vector<value_type>>(fans, fout);
+#else
   return EXIT_SUCCESS;
+#endif  // !defined(PDHKR_TEST)
 }

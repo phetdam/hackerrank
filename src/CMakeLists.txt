@@ -35,4 +35,4 @@ pdhkr_add_tests(TARGET subtrees_and_paths TEST_CASES 0 1)
 
 # https://www.hackerrank.com/challenges/merge-two-sorted-linked-lists/problem
 add_executable(merge_sorted_linked_lists merge_sorted_linked_lists.cc)
-pdhkr_add_tests(TARGET merge_sorted_linked_lists TEST_CASES 0 5)
+pdhkr_add_tests(TARGET merge_sorted_linked_lists TEST_CASES 0 3 5)
