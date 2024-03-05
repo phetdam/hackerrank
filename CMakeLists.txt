@@ -50,6 +50,10 @@ if(MSVC)
         /Wall
         # warn about unreferenced inline function being removed
         /wd4514
+        # warn about copy constructor implicitly defined as deleted
+        /wd4625
+        # warn about copy assignment operator implicitly defined as deleted
+        /wd4626
         # warn about Spectre mitigation for memory load with /QSpectre
         /wd5045
     )

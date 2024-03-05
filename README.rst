@@ -92,7 +92,7 @@ CTest as follows:
 
 .. code:: shell
 
-   ctest --test-dir build_windows_x86 --config Debug -j%NUMBER_OF_PROCESSORS%
+   ctest --test-dir build_windows_x86 -C Debug -j%NUMBER_OF_PROCESSORS%
 
-If release artifacts were built, ``--config Release`` can be used to run the
-release mode tests.
+If release artifacts were built, ``-C Release`` can be used to run the release
+mode tests.

@@ -201,5 +201,4 @@ int main()
 #else
   return EXIT_SUCCESS;
 #endif  // !defined(PDHKR_TEST)
-  return EXIT_SUCCESS;
 }
