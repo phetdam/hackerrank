@@ -45,6 +45,10 @@ function(pdhkr_add_tests)
         set(TEST_TARGET ${HOST_TARGET}_${CASE})
         # executable combines suffix with target
         add_executable(${TEST_TARGET} ${HOST_TARGET}.cc)
+        # dependent on host target so that if host target compilation fails
+        # the test targets are not compiled. if this is not done, all the test
+        # targets will also fail and duplicate compile messages are shown
+        add_dependencies(${TEST_TARGET} ${HOST_TARGET})
         # macro definitions for enabling testing + providing input/output files
         target_compile_definitions(
             ${TEST_TARGET} PRIVATE
