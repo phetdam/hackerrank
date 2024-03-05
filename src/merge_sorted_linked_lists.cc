@@ -36,41 +36,6 @@ public:
   using value_type = T;
 
   /**
-   * Formatter class for printing an entire linked list.
-   */
-  class full_print_format {
-  public:
-    /**
-     * Dummy type to trigger `operator<<` overload.
-     */
-    struct constructor {};
-
-    /**
-     * Ctor.
-     */
-    full_print_format(std::ostream& out) : out_{out} {}
-
-  private:
-    std::ostream& out_;
-
-    // friend to access internal stream reference
-    template <typename U>
-    friend auto& operator<<(
-      const typename list_node<U>::full_print_format&,
-      const std::unique_ptr<list_node<U>>&);
-  };
-
-  /**
-   * Static function returning a new `full_print_format::constructor`.
-   *
-   * This helps with `operator<<` overloading.
-   */
-  static constexpr auto full()
-  {
-    return typename full_print_format::constructor{};
-  }
-
-  /**
    * Ctor.
    *
    * @param value Node value
@@ -125,49 +90,27 @@ private:
 };
 
 /**
- * Print a single list node to an output stream.
- */
-template <typename T>
-auto& operator<<(
-  std::ostream& out, const std::unique_ptr<list_node<T>>& node)
-{
-  if (node)
-    out << node->value();
-  else
-    out << "(null)";
-  return out;
-}
-
-/**
- * Return a new list node formatter.
- */
-// template <typename T>
-inline auto operator<<(
-  std::ostream& out,
-  typename list_node<unsigned int>::full_print_format::constructor /*ctor*/)
-{
-  return typename list_node<unsigned int>::full_print_format{out};
-}
-
-/**
  * Print an entire linked list.
  *
  * Values are space-separated and no trailing `(null)` is printed.
+ *
+ * @param out Output stream
+ * @param head Head of linked list to print
  */
 template <typename T>
 auto& operator<<(
-  const typename list_node<T>::full_print_format& fmt,
+  std::ostream& out,
   const std::unique_ptr<list_node<T>>& head)
 {
   auto cur = head.get();
   while (cur) {
     // print separating space after head
     if (cur != head.get())
-      fmt.out_ << " ";
-    fmt.out_ << cur->value();
+      out << " ";
+    out << cur->value();
     cur = cur->next().get();
   }
-  return fmt.out_;
+  return out;
 }
 
 /**
@@ -289,7 +232,7 @@ int main()
     auto head_b = create_list(fin);
     // create merged list + print
     auto head = merge_lists(head_a, head_b);
-    fout << decltype(head)::element_type::full() << head << std::endl;
+    fout << head << std::endl;
   }
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
