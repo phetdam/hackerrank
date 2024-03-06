@@ -6,7 +6,10 @@
  *
  * URL: https://www.hackerrank.com/challenges/crush/problem
  *
- * @note This naive solution times out on the larger test cases.
+ * @note This naive solution times out on the larger test cases. Probably the
+ *  right approach here is to perform an O(nlog(n)) merging of the affected
+ *  array intervals to produce a final set of array intervals with updated
+ *  values and to then take the maximum value across this set.
  */
 
 #include <algorithm>
