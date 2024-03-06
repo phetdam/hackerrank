@@ -42,3 +42,8 @@ pdhkr_add_tests(TARGET merge_sorted_linked_lists TEST_CASES 0 3 5)
 # specific-position-from-the-tail/problem
 add_executable(node_from_tail node_from_tail.cc)
 pdhkr_add_tests(TARGET node_from_tail TEST_CASES 0 4 5)
+
+# https://www.hackerrank.com/challenges/crush/problem
+add_executable(array_manipulation array_manipulation.cc)
+# TODO: times out on 7. should instead track and merge intervals
+pdhkr_add_tests(TARGET array_manipulation TEST_CASES 0 5 15)
