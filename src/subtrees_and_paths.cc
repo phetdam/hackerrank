@@ -19,11 +19,11 @@
 #include <iterator>
 #include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 // only used when compiling as standalone test program
@@ -255,10 +255,12 @@ auto max_value(
 /**
  * Type alias for the edge map.
  *
- * Since there are only 100000 nodes max a 64-bit unsigned int more than
- * sufficient to keep track of the nodes. We just shift by 32 bits.
+ * This allows constant time lookup for a particular edge while also allowing
+ * easy iteration through the neighbors of any particular node.
  */
-using edge_map_type = std::unordered_map<std::uint64_t, bool>;
+using edge_map_type = std::unordered_map<
+  std::uint32_t, std::unordered_set<std::uint32_t>
+>;
 
 /**
  * Type alias for the node map.
@@ -304,9 +306,26 @@ public:
    */
   void insert_edge(std::uint32_t id_a, std::uint32_t id_b)
   {
-    auto edge = make_edge(id_a, id_b);
-    if (!has_edge(edge))
-      edges_[edge] = true;
+    // create new neighbor set
+    if (edges_.find(id_a) == edges_.end())
+      edges_[id_a] = {};
+    // insert new edge
+    if (edges_[id_a].find(id_b) == edges_[id_a].end())
+      edges_[id_a].insert(id_b);
+  }
+
+  /**
+   * Return the set of neighbors for the specified node.
+   *
+   * If the node has no neighbors, a reference to an empty set is returned.
+   */
+  const auto& neighbors(std::uint32_t id) const
+  {
+    if (edges_.find(id) == edges_.end()) {
+      static decltype(edges_)::mapped_type empty;
+      return empty;
+    }
+    return edges_.at(id);
   }
 
   /**
@@ -322,15 +341,8 @@ public:
    */
   bool has_edge(std::uint32_t id_a, std::uint32_t id_b) const
   {
-    return edges_.find(make_edge(id_a, id_b)) != edges_.end();
-  }
-
-  /**
-   * Check if the graph contains the specified edge.
-   */
-  bool has_edge(std::uint64_t edge) const
-  {
-    return edges_.find(edge) != edges_.end();
+    const auto& edges = neighbors(id_a);
+    return edges.size() && (edges.find(id_b) != edges.end());
   }
 
   /**
@@ -339,14 +351,6 @@ public:
   auto n_nodes() const
   {
     return nodes_.size();
-  }
-
-  /**
-   * Return number of edges.
-   */
-  auto n_edges() const
-  {
-    return edges_.size();
   }
 
   /**
@@ -369,20 +373,6 @@ public:
     return nodes_.at(id);
   }
 
-  /**
-   * Convert two 32-bit node IDs into the 64-bit value representing an edge.
-   *
-   * @param id_a First node ID, will be left shifted
-   * @param id_b Second node ID, not shifted
-   */
-  static std::uint64_t make_edge(std::uint32_t id_a, std::uint32_t id_b)
-  {
-    // copy into 64-bit value first to prevent overflow
-    std::uint64_t edge = id_a;
-    // NB: parentheses unnecesary but helpful for code clarity
-    return (edge << CHAR_BIT * sizeof id_a) + id_b;
-  }
-
 private:
   node_map_type nodes_;
   edge_map_type edges_;
@@ -401,18 +391,26 @@ void blanket_add(simple_graph& graph, std::uint32_t root, int value)
     return;
   // node queue
   std::deque<std::uint32_t> nodes{root};
+  // unvisited nodes
+  std::unordered_set<std::uint32_t> unvisited;
+  for (auto [node, _] : graph.nodes())
+    unvisited.insert(node);
   // perform BFS
   while (nodes.size()) {
     // current node to consider
     auto cur = nodes.front();
     nodes.pop_front();
-    // increment node value in graph
+    // increment node value in graph + mark as visited
     graph.value(cur) += value;
+    unvisited.erase(cur);
     // add children to queue if connected
-    for (decltype(graph.n_nodes()) i = 0; i < graph.n_nodes(); i++) {
-      if (graph.has_edge(cur, i + 1))
-        nodes.push_back(i + 1);
-    }
+    for (auto neighbor : graph.neighbors(cur))
+      if (unvisited.find(neighbor) != unvisited.end())
+        nodes.push_back(neighbor);
+    // add edges in opposite direction
+    // for (auto node : unvisited)
+    //   if (graph.has_edge(node, cur))
+    //     nodes.push_back(node);
   }
 }
 
@@ -421,6 +419,7 @@ void blanket_add(simple_graph& graph, std::uint32_t root, int value)
  *
  * This function treats the edges as undirected.
  */
+/*
 std::vector<std::uint32_t> compute_path(
   const simple_graph& graph, std::uint32_t root, std::uint32_t tgt)
 {
@@ -457,16 +456,69 @@ std::vector<std::uint32_t> compute_path(
   // stack contains the search path
   return stack;
 }
+*/
+std::vector<std::uint32_t> compute_path(
+  const simple_graph& graph, std::uint32_t root, std::uint32_t tgt)
+{
+  // empty if no root
+  if (!graph.has_node(root))
+    return {};
+  // node stack. we use the last element of the vector as "top" of stack
+  std::vector<std::uint32_t> stack{root};
+  // set of unvisited nodes so we don't revisit
+  std::unordered_set<std::uint32_t> unvisited;
+  for (auto [node, _] : graph.nodes())
+    unvisited.insert(node);
+  // perform DFS
+  while (stack.size()) {
+    // current node to consider
+    auto cur = stack.back();
+    unvisited.erase(cur);
+    // if found, success
+    if (cur == tgt)
+      break;
+    // add next unvisited child
+    for (auto neighbor : graph.neighbors(cur)) {
+      if (unvisited.find(neighbor) != unvisited.end()) {
+        stack.push_back(neighbor);
+        break;
+      }
+    }
+    // failed to add any children, so try opposite direction
+    if (cur == stack.back()) {
+      for (auto node : unvisited) {
+        if (graph.has_edge(node, cur)) {
+          stack.push_back(node);
+          break;
+        }
+      }
+    }
+    // still failed to add any children, so pop stack
+    if (cur == stack.back())
+      stack.pop_back();
+  }
+  // stack contains the search path
+  return stack;
+}
 
 /**
  * Return the max value of the nodes on the path between root and given nodes.
  */
-auto max_value(
-  const simple_graph& graph,
-  std::uint32_t root,
-  std::uint32_t id_a,
-  std::uint32_t id_b)
+auto max_value(const simple_graph& graph, std::uint32_t id_a, std::uint32_t id_b)
 {
+  // path from id_a to id_b
+  auto path = compute_path(graph, id_a, id_b);
+  // path has been found. iterate through stack to find max node value
+  auto res_it = std::max_element(
+    path.begin(),
+    path.end(),
+    [&graph](auto a, auto b) { return graph.value(a) < graph.value(b); }
+  );
+  // may be empty if no path was found
+  return (res_it == path.end()) ?
+    std::numeric_limits<std::decay_t<decltype(graph.value(0))>>::min() :
+    graph.value(*res_it);
+  /*
   // find paths for A and B
   auto path_a = compute_path(graph, root, id_a);
   auto path_b = compute_path(graph, root, id_b);
@@ -516,6 +568,7 @@ auto max_value(
   }
   // return result
   return res;
+  */
 }
 #endif  // !defined(USE_TREE_NODE)
 
@@ -621,8 +674,7 @@ int main()
       fout << max_value(root, id_a, id_b) << std::endl;
       // TODO
 #else
-      // we assumed 1 is always the root in this problem
-      fout << max_value(graph, 1, id_a, id_b) << std::endl;
+      fout << max_value(graph, id_a, id_b) << std::endl;
 #endif  // !defined(USE_TREE_NODE)
     }
     // unknown, error
@@ -637,7 +689,7 @@ int main()
 #if defined(USE_TREE_NODE)
   using value_type = decltype(max_value(root, 1, 1));
 #else
-  using value_type = decltype(max_value(graph, 1, 1, 1));
+  using value_type = decltype(max_value(graph, 1, 1));
 #endif  // !defined(USE_TREE_NODE)
   return pdhkr::exit_compare<value_type>(fans, fout);
 #else

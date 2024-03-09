@@ -65,9 +65,9 @@ function(pdhkr_add_tests)
 endfunction()
 
 ##
-# Skip added tests for the given test cases for a HackerRank submission.
+# Disable added tests for the given test cases for a HackerRank submission.
 #
-# Any CTest test that was already added with pdhkr_add_tests can be skipped
+# Any CTest test that was already added with pdhkr_add_tests can be disabled
 # here, e.g. if the test takes too long to run, if the test is failing, etc.
 #
 # Arguments:
@@ -79,7 +79,7 @@ endfunction()
 #       underscore, that is also the stem for the relevant .in, .out files.
 #       See pdhkr_add_tests for details on the naming convention.
 #
-function(pdhkr_skip_tests)
+function(pdhkr_disable_tests)
     # parse TARGET parent target name, TEST_CASES test target suffices + stems
     # for the input/output files. ARGV contains all the function arguments
     set(SINGLE_VALUE_ARGS TARGET)
@@ -95,8 +95,8 @@ function(pdhkr_skip_tests)
     if(NOT DEFINED HOST_TEST_CASES)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION}: missing TEST_CASES")
     endif()
-    # for each of the test case stems skip EXIT_FAILURE
+    # disable for each test case stem
     foreach(CASE IN LISTS HOST_TEST_CASES)
-        set_tests_properties(${HOST_TARGET}_${CASE} PROPERTIES SKIP_RETURN_CODE 1)
+        set_tests_properties(${HOST_TARGET}_${CASE} PROPERTIES DISABLED ON)
     endforeach()
 endfunction()
