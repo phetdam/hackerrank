@@ -381,8 +381,7 @@ private:
 /**
  * Increment the value of all nodes by the given amount starting from a root.
  *
- * There is an underlying assumption that any subgraph starting from root is
- * a DAG, which for this problem should be true.
+ * @note This treats the graph as directed and assumes it has no cycles.
  */
 void blanket_add(simple_graph& graph, std::uint32_t root, int value)
 {
@@ -391,72 +390,24 @@ void blanket_add(simple_graph& graph, std::uint32_t root, int value)
     return;
   // node queue
   std::deque<std::uint32_t> nodes{root};
-  // unvisited nodes
-  std::unordered_set<std::uint32_t> unvisited;
-  for (auto [node, _] : graph.nodes())
-    unvisited.insert(node);
   // perform BFS
   while (nodes.size()) {
     // current node to consider
     auto cur = nodes.front();
     nodes.pop_front();
-    // increment node value in graph + mark as visited
+    // increment node value in graph
     graph.value(cur) += value;
-    unvisited.erase(cur);
     // add children to queue if connected
     for (auto neighbor : graph.neighbors(cur))
-      if (unvisited.find(neighbor) != unvisited.end())
         nodes.push_back(neighbor);
-    // add edges in opposite direction
-    // for (auto node : unvisited)
-    //   if (graph.has_edge(node, cur))
-    //     nodes.push_back(node);
   }
 }
 
 /**
- * Return the path from the root to the given node.
+ * Return the path between two nodes using a depth-first search.
  *
- * This function treats the edges as undirected.
+ * @note This treats the graph as an undirected graph.
  */
-/*
-std::vector<std::uint32_t> compute_path(
-  const simple_graph& graph, std::uint32_t root, std::uint32_t tgt)
-{
-  // empty if no root
-  if (!graph.has_node(root))
-    return {};
-  // node stack. we use the last element of the vector as "top" of stack
-  std::vector<std::uint32_t> stack{root};
-  // map of visited nodes so we don't revisit
-  std::unordered_map<std::uint32_t, bool> visited;
-  // perform DFS
-  while (stack.size()) {
-    // current node to consider
-    auto cur = stack.back();
-    visited[cur] = true;
-    // if found, success
-    if (cur == tgt)
-      break;
-    // add next unvisited child
-    for (decltype(graph.n_nodes()) i = 0; i < graph.n_nodes(); i++) {
-      // TODO: maybe need to add undirected edges in general?
-      if (
-        visited.find(i + 1) == visited.end() &&
-        (graph.has_edge(cur, i + 1) || graph.has_edge(i + 1, cur))
-      ) {
-        stack.push_back(i + 1);
-        break;
-      }
-    }
-    // failed to add any children. pop from stack
-    if (cur == stack.back())
-      stack.pop_back();
-  }
-  // stack contains the search path
-  return stack;
-}
-*/
 std::vector<std::uint32_t> compute_path(
   const simple_graph& graph, std::uint32_t root, std::uint32_t tgt)
 {
@@ -518,57 +469,6 @@ auto max_value(const simple_graph& graph, std::uint32_t id_a, std::uint32_t id_b
   return (res_it == path.end()) ?
     std::numeric_limits<std::decay_t<decltype(graph.value(0))>>::min() :
     graph.value(*res_it);
-  /*
-  // find paths for A and B
-  auto path_a = compute_path(graph, root, id_a);
-  auto path_b = compute_path(graph, root, id_b);
-  // if either is empty, return min
-  if (path_a.empty() || path_b.empty())
-    return std::numeric_limits<int>::min();
-  // otherwise, find closest ancestor. this is originally the root
-  auto ancestor = root;
-  // iterators for the two paths
-  auto it_a = path_a.begin();
-  auto it_b = path_b.begin();
-  // iterate
-  while (it_a != path_a.end() && it_b != path_b.end()) {
-    // if the nodes are different, break
-    if (*it_a != *it_b)
-      break;
-    // otherwise, update ancestor + continue
-    ancestor = *it_a;
-    it_a++;
-    it_b++;
-  }
-  // start taking max values. start with ancestor
-  auto res = graph.value(ancestor);
-  // if partial path_a non-empty, get max
-  if (std::distance(it_a, path_a.end())) {
-    auto res_it = std::max_element(
-      it_a,
-      path_a.end(),
-      [&graph](const auto& a, const auto& b)
-      {
-        return graph.value(a) < graph.value(b);
-      }
-    );
-    res = std::max(res, graph.value(*res_it));
-  }
-  // repeat for partial path_b
-  if (std::distance(it_b, path_b.end())) {
-    auto res_it = std::max_element(
-      it_b,
-      path_b.end(),
-      [&graph](const auto& a, const auto& b)
-      {
-        return graph.value(a) < graph.value(b);
-      }
-    );
-    res = std::max(res, graph.value(*res_it));
-  }
-  // return result
-  return res;
-  */
 }
 #endif  // !defined(USE_TREE_NODE)
 
