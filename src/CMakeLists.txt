@@ -66,3 +66,7 @@ pdhkr_disable_tests(TARGET array_manipulation TEST_CASES 7)
 # https://www.hackerrank.com/challenges/swap-nodes-algo/problem
 add_executable(swap_tree_nodes swap_tree_nodes.cc)
 pdhkr_add_tests(TARGET swap_tree_nodes TEST_CASES 0 1 2 9)
+
+# https://www.hackerrank.com/challenges/jesse-and-cookies/problem
+add_executable(jesse_and_cookies jesse_and_cookies.cc)
+pdhkr_add_tests(TARGET jesse_and_cookies TEST_CASES 1 2 6 8 11)
