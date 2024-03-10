@@ -27,15 +27,18 @@ pdhkr_add_tests(TARGET journey_to_moon TEST_CASES 0 1r 1s 4 11)
 
 # https://www.hackerrank.com/challenges/subtrees-and-paths/problem
 add_executable(subtrees_and_paths subtrees_and_paths.cc)
+# use the tree_node class which only works if the input results in an actual
+# tree. some inputs result in a forest being created so it isn't the solution
+if(PDHKR_ALT_USE_TREE_NODE)
+    message(STATUS "subtrees_and_paths.cc: USE_TREE_NODE defined")
+    set_source_files_properties(
+        subtrees_and_paths.cc PROPERTIES
+        COMPILE_DEFINITIONS USE_TREE_NODE
+    )
+endif()
 pdhkr_add_tests(TARGET subtrees_and_paths TEST_CASES 0 1 2 3 11 13)
 # TODO: 2 and 3 failing, 11 and 13 timed out
 pdhkr_disable_tests(TARGET subtrees_and_paths TEST_CASES 2 3 11 13)
-# uncomment to use the tree_node class which only works if the input results in
-# an actual tree. some inputs result in a forest being created.
-# set_source_files_properties(
-#     subtrees_and_paths.cc PROPERTIES
-#     COMPILE_DEFINITIONS USE_TREE_NODE
-# )
 
 # https://www.hackerrank.com/challenges/merge-two-sorted-linked-lists/problem
 add_executable(merge_sorted_linked_lists merge_sorted_linked_lists.cc)
@@ -48,11 +51,14 @@ pdhkr_add_tests(TARGET node_from_tail TEST_CASES 0 4 5)
 
 # https://www.hackerrank.com/challenges/crush/problem
 add_executable(array_manipulation array_manipulation.cc)
-# uncomment to use naive array update solution
-# set_source_files_properties(
-#     array_manipulation.cc PROPERTIES
-#     COMPILE_DEFINITIONS USE_ARRAY_UPDATE
-# )
+# use naive array update solution
+if(PDHKR_ALT_USE_ARRAY_UPDATE)
+    message(STATUS "array_manipulation.cc: USE_ARRAY_UPDATE defined")
+    set_source_files_properties(
+        array_manipulation.cc PROPERTIES
+        COMPILE_DEFINITIONS USE_ARRAY_UPDATE
+    )
+endif()
 pdhkr_add_tests(TARGET array_manipulation TEST_CASES 0 5 7 15)
 # TODO: 7 times out
 pdhkr_disable_tests(TARGET array_manipulation TEST_CASES 7)
