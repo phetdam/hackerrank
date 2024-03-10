@@ -164,8 +164,8 @@ inline auto inorder_tree_ids(const std::unique_ptr<binary_tree_node>& root)
 /**
  * Object print wrapper class.
  *
- * This helpers to separate `operator<<` overloading for `printer<T>` versus
- * the `T` itself by requiring explicit `printer<T>` overloads.
+ * This helps to separate `operator<<` overloading for `printer<T>` versus the
+ * `T` itself by requiring explicit `printer<T>` overloads.
  *
  * @tparam T type
  */
