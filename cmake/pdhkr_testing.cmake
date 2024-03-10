@@ -65,10 +65,50 @@ function(pdhkr_add_tests)
 endfunction()
 
 ##
+# Mark expected failure for the given test cases for a HackerRank submission.
+#
+# The test will still run but will be marked as skipped by CTest if it fails,
+# that is if it returns EXIT_FAILURE, i.e. 1. This is different from using
+# pdhkr_disable_tests, which disables the tests so they are not run at all.
+#
+# Arguments:
+#   TARGET target
+#       Name of the HackerRank submission target
+#
+#   TEST_CASES test_case...
+#       Test case identifiers, suffixed to the test program name after an
+#       underscore, that is also the stem for the relevant .in, .out files.
+#       See pdhkr_add_tests for details on the naming convention.
+#
+function(pdhkr_xfail_tests)
+    # parse TARGET parent target name, TEST_CASES test target suffices + stems
+    # for the input/output files. ARGV contains all the function arguments
+    set(SINGLE_VALUE_ARGS TARGET)
+    set(MULTI_VALUE_ARGS TEST_CASES)
+    cmake_parse_arguments(
+        HOST
+        "" "${SINGLE_VALUE_ARGS}" "${MULTI_VALUE_ARGS}" ${ARGV}
+    )
+    # check args. both are required
+    if(NOT DEFINED HOST_TARGET)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION}: missing TARGET")
+    endif()
+    if(NOT DEFINED HOST_TEST_CASES)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION}: missing TEST_CASES")
+    endif()
+    # disable for each test case stem
+    foreach(CASE IN LISTS HOST_TEST_CASES)
+        set_tests_properties(${HOST_TARGET}_${CASE} PROPERTIES SKIP_RETURN_CODE 1)
+    endforeach()
+endfunction()
+
+##
 # Disable added tests for the given test cases for a HackerRank submission.
 #
 # Any CTest test that was already added with pdhkr_add_tests can be disabled
 # here, e.g. if the test takes too long to run, if the test is failing, etc.
+# Disabling the test means that the test will not be run, which contrasts with
+# pdhkr_xfail_tests, where the test still runs but is expected to fail.
 #
 # Arguments:
 #   TARGET target

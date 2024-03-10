@@ -38,7 +38,8 @@ if(PDHKR_ALT_USE_TREE_NODE)
 endif()
 pdhkr_add_tests(TARGET subtrees_and_paths TEST_CASES 0 1 2 3 11 13)
 # TODO: 2 and 3 failing, 11 and 13 timed out
-pdhkr_disable_tests(TARGET subtrees_and_paths TEST_CASES 2 3 11 13)
+pdhkr_xfail_tests(TARGET subtrees_and_paths TEST_CASES 2 3)
+pdhkr_disable_tests(TARGET subtrees_and_paths TEST_CASES 11 13)
 
 # https://www.hackerrank.com/challenges/merge-two-sorted-linked-lists/problem
 add_executable(merge_sorted_linked_lists merge_sorted_linked_lists.cc)
