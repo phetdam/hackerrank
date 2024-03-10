@@ -62,3 +62,7 @@ endif()
 pdhkr_add_tests(TARGET array_manipulation TEST_CASES 0 5 7 15)
 # TODO: 7 times out
 pdhkr_disable_tests(TARGET array_manipulation TEST_CASES 7)
+
+# https://www.hackerrank.com/challenges/swap-nodes-algo/problem
+add_executable(swap_tree_nodes swap_tree_nodes.cc)
+pdhkr_add_tests(TARGET swap_tree_nodes TEST_CASES 0 1 2 9)
