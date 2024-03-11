@@ -10,6 +10,25 @@ cmake_minimum_required(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 # adds a test program with name target_case_k, reading input from case_k.in,
 # reading expected output from case_k.out, that can be run with no arguments.
 #
+# The test program will be compiled with the PDHKR_TEST, PDHKR_TEST_INPUT, and
+# PDHKR_TEST_OUTPUT macros defined. Any HackerRank submission source intended
+# for recompilation as a test program must do the following:
+#
+# * Replace reading from std::cin with reading from a std::ifstream opened
+#   on the .in file path given by PDHKR_TEST_INPUT
+# * Replace writing to std::cout, or to a std::ofstream opened on OUTPUT_PATH
+#   as used by some HackerRank problems, with writing to a std::stringstream
+# * Provide a std::ifstream opened on the .out file path given by
+#   PDHKR_TEST_OUTPUT that will be used by pdhkr::exit_compare<>
+# * Call pdhkr::exit_compare<T>, where T is a scalar or std::vector<> for
+#   problems that require array outputs, and return its return value from main
+#
+# Typically all these steps are accomplished via conditional compilation
+# dependent on whether PDHKR_TEST, and sometimes PDHKR_LOCAL, are defined.
+# Usually checking whether PDHKR_LOCAL is defined is done for the problems
+# where OUTPUT_PATH is used by the HackerRank submission to guide conditional
+# compilation of the local program to use std::cout instead.
+#
 # Arguments:
 #   TARGET target
 #       Name of the HackerRank submission target, the .cc file stem, as well as
