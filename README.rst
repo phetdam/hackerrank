@@ -28,7 +28,7 @@ CMake_ >=3.16 is required to build from source on all platforms.
 
 .. _CMake: https://cmake.org/cmake/help/latest/
 
-POSIX
+\*nix
 ~~~~~
 
 Building is easy with the provided ``build.sh`` build script. For usage, type
@@ -70,7 +70,7 @@ prefix, suffixed with an underscore and the stem of the respective input file.
 These test cases do not include all the ones actually run for each HackerRank
 problem but suffice for correctness testing.
 
-POSIX
+\*nix
 ~~~~~
 
 Running the tests is easy with the provided ``check.sh`` test harness script.
