@@ -73,14 +73,27 @@ problem but suffice for correctness testing.
 POSIX
 ~~~~~
 
-To run the tests in parallel, one invokes the CTest_ test driver as follows:
+Running the tests is easy with the provided ``check.sh`` test harness script.
+For usage, type
 
 .. code:: bash
 
-   ctest --test-dir build -j$(nproc)
+   ./check.sh --help
 
-``-j`` can be omitted for serial test running or specified a lower value to
-reduce test parallelism.
+To run the tests, which are done in parallel by default, one simply invokes
+
+.. code:: bash
+
+   ./check.sh
+
+For serial test running or for lower test parallelism one can use the CTest_
+``-j`` option, e.g.
+
+.. code:: bash
+
+   ./check.sh -Ct -j4
+
+By default, ``check.sh`` uses a value of ``$(nproc)`` for the ``-j`` flag.
 
 .. _CTest: https://cmake.org/cmake/help/latest/manual/ctest.1.html
 

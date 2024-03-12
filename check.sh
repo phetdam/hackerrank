@@ -13,15 +13,15 @@ RUN_ACTION=
 PARSE_ACTION=
 # CTest arguments
 CTEST_ARGS=
-# default build output directory and build configuration
+# default build output directory and build configuration (unused)
 BUILD_DIR=build
-BUILD_CONFIG=Debug
+# BUILD_CONFIG=Debug
 
 ##
 # Print build script usage.
 #
 print_usage() {
-    echo "Usage: $PROGNAME [-h] [-t TEST_DIR] [-c CONFIG] [-Ct CTEST_ARGS]"
+    echo "Usage: $PROGNAME [-h] [-t TEST_DIR] [-Ct CTEST_ARGS]"
     echo
     echo "Testing harness script for hackerrank *nix builds."
     echo
@@ -32,9 +32,9 @@ print_usage() {
     echo "  -h,  --help                     Print this usage"
     echo "  -t,  --test-dir TEST_DIR        Build directory to test, default" \
         "$BUILD_DIR"
-    echo "  -c,  --config CONFIG            Build configuration, default" \
-        "$BUILD_CONFIG"
-    echo "  -Ct, --ctest-args CTEST_ARGS    Args to pass to ctest"
+    # echo "  -c,  --config CONFIG            Build configuration, default" \
+    #     "$BUILD_CONFIG"
+    echo "  -Ct, --ctest-args CTEST_ARGS    Args to pass to ctest test command"
 }
 
 ##
@@ -57,9 +57,9 @@ parse_args() {
                 PARSE_ACTION=output_dir
                 ;;
             # set build configuration
-            -c | --config)
-                PARSE_ACTION=build_config
-                ;;
+            # -c | --config)
+            #     PARSE_ACTION=build_config
+            #     ;;
             # collect CTest args
             -Ct | --ctest-args)
                 PARSE_ACTION=ctest_args
@@ -71,9 +71,9 @@ parse_args() {
                 then
                     BUILD_DIR=$ARG
                 # set build configuration
-                elif [ "$PARSE_ACTION" = build_config ]
-                then
-                    BUILD_CONFIG=$ARG
+                # elif [ "$PARSE_ACTION" = build_config ]
+                # then
+                #     BUILD_CONFIG=$ARG
                 # update CTest args
                 elif [ "$PARSE_ACTION" = ctest_args ]
                 then
