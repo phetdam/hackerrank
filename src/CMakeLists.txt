@@ -71,3 +71,7 @@ pdhkr_add_tests(TARGET swap_tree_nodes TEST_CASES 0 1 2 9)
 # https://www.hackerrank.com/challenges/jesse-and-cookies/problem
 add_executable(jesse_and_cookies jesse_and_cookies.cc)
 pdhkr_add_tests(TARGET jesse_and_cookies TEST_CASES 1 2 6 8 11)
+
+# https://www.hackerrank.com/challenges/game-of-two-stacks/problem
+add_executable(two_stack_game two_stack_game.cc)
+pdhkr_add_tests(TARGET two_stack_game TEST_CASES 0 1 4)
