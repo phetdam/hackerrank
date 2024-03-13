@@ -81,3 +81,7 @@ add_executable(tree_top_view tree_top_view.cc)
 pdhkr_add_tests(TARGET tree_top_view TEST_CASES 0 1 2)
 # TODO: 1 and 2 failing, see note on nodes "outside their parents' shadow"
 pdhkr_xfail_tests(TARGET tree_top_view TEST_CASES 1 2)
+
+# https://www.hackerrank.com/challenges/tree-level-order-traversal/problem
+add_executable(tree_level_order tree_level_order.cc)
+pdhkr_add_tests(TARGET tree_level_order TEST_CASES 0 1 2)

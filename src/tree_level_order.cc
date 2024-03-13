@@ -1,23 +1,19 @@
 /**
- * @file tree_top_view.cc
+ * @file tree_level_order.cc
  * @author Derek Huang
- * @brief C++ submission for HackerRank problem "Tree: Top View"
+ * @brief C++ submission for HackerRank problem "Tree: Level Order Traversal"
  * @copyright MIT License
  *
- * URL: https://www.hackerrank.com/challenges/tree-top-view/problem
- *
- * @note The BST node insertion and input format were inferred from the
- *  HackerRank submission C++11 template code and reworked. In particular no
- *  `Solution` class is necessary and type signedness is correct.
+ * URL: https://www.hackerrank.com/challenges/tree-level-order-traversal/problem
  */
 
 #include <algorithm>
 #include <cstdlib>
+#include <deque>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 // only used when compiling as standalone test program
 #ifdef PDHKR_TEST
@@ -32,6 +28,8 @@ namespace {
 
 /**
  * Binary tree node class template with unique child ownership.
+ *
+ * @note This implementation is copied from `tree_top_view.cc`.
  *
  * @tparam T value
  */
@@ -111,7 +109,7 @@ private:
 /**
  * Perform a binary search tree insertion of a value into a binary tree.
  *
- * @note Duplicates are left-inserted to mirror original problem's logic.
+ * @note This implementation is copied from `tree_top_view.cc`.
  *
  * @tparam T value type
  *
@@ -142,19 +140,21 @@ void bst_insert(std::unique_ptr<binary_tree_node<T>>& root, T&& value)
 }
 
 /**
- * Wrapper class for streaming a `binary_tree_node<T>` tree's top view.
+ * Wrapper class for streaming a BFS ordering of a `binary_tree_node<T>` tree.
+ *
+ * The BFS ordering is equivalent to saying the ordering is level first.
  *
  * @tparam T value type
  */
 template <typename T>
-class binary_tree_top_view {
+class binary_tree_bfs_view {
 public:
   /**
    * Ctor.
    *
    * @param root Reference to tree root
    */
-  binary_tree_top_view(const std::unique_ptr<binary_tree_node<T>>& root)
+  binary_tree_bfs_view(const std::unique_ptr<binary_tree_node<T>>& root)
     : root_{root}
   {}
 
@@ -171,54 +171,42 @@ private:
 };
 
 /**
- * Print the top view of a binary tree to a stream.
- *
- * This is an inorder traversal of all the leftmost children that can be seen
- * if looking down from above on tree, the root, and the rightmost children.
- * All values are printed separated by spaces as required by the problem.
- *
- * @note Need some way to identify nodes that are outside the "shadow" of their
- *  parent as those somehow are counted as being "visible".
+ * Print the BFS, or level order, view of a binary tree to a stream.
  *
  * @tparam T value type
  *
- * @param view Top view wrapper with reference to the tree root
+ * @param view Level order view wrapper with reference to the tree root
  */
 template <typename T>
-auto& operator<<(std::ostream& out, const binary_tree_top_view<T>& view)
+auto& operator<<(std::ostream& out, const binary_tree_bfs_view<T>& view)
 {
   // reference to the tree root
   const auto& root = view.root();
   // empty tree
   if (!root)
     return out;
-  // vector to hold left children + root values (for storing DFS progress)
-  std::vector<T> values;
-  // current pointer to tree node
-  auto cur = root.get();
-  // add root + all left children values as we go deeper
-  while (cur) {
-    values.push_back(cur->value());
-    cur = cur->left().get();
-  }
-  // going backwards, print deepest left child all the way through root
-  for (auto it = values.rbegin(); it != values.rend(); it++) {
-    if (std::distance(it, values.rbegin()))
-      out << " ";
-    out << *it;
-  }
-  // reset cur to root's right child
-  cur = root->right().get();
-  // print all right children values as we go deeper
-  while (cur) {
-    out << " " << cur->value();
-    cur = cur->right().get();
+  // perform BFS and print nodes
+  std::deque<decltype(root.get())> queue{root.get()};
+  while (queue.size()) {
+    // current node
+    auto cur = queue.front();
+    queue.pop_front();
+    // print extra space if root was printed already
+    if (cur != root.get())
+        out << " ";
+    // print current value + add children
+    out << cur->value();
+    if (cur->left())
+      queue.push_back(cur->left().get());
+    if (cur->right())
+      queue.push_back(cur->right().get());
   }
   return out;
 }
 
 }  // namespace
 
+// note: main is a near-identical copy of the tree_top_view.cc main
 int main()
 {
 // building as standalone test program
@@ -250,8 +238,8 @@ int main()
     else
       bst_insert(root, std::move(value));
   }
-  // write top view to stream
-  fout << binary_tree_top_view{root} << std::endl;
+  // write level order view to stream
+  fout << binary_tree_bfs_view{root} << std::endl;
 // if testing, do comparison in the program itself
 #if defined(PDHKR_TEST)
   // std::vector used here to trigger vector comparison
