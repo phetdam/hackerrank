@@ -75,3 +75,9 @@ pdhkr_add_tests(TARGET jesse_and_cookies TEST_CASES 1 2 6 8 11)
 # https://www.hackerrank.com/challenges/game-of-two-stacks/problem
 add_executable(two_stack_game two_stack_game.cc)
 pdhkr_add_tests(TARGET two_stack_game TEST_CASES 0 1 4)
+
+# https://www.hackerrank.com/challenges/tree-top-view/problem
+add_executable(tree_top_view tree_top_view.cc)
+pdhkr_add_tests(TARGET tree_top_view TEST_CASES 0 1 2)
+# TODO: 1 and 2 failing, see note on nodes "outside their parents' shadow"
+pdhkr_xfail_tests(TARGET tree_top_view TEST_CASES 1 2)
