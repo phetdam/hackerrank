@@ -142,6 +142,161 @@ void bst_insert(std::unique_ptr<binary_tree_node<T>>& root, T&& value)
 }
 
 /**
+ * Write the values of a container to a stream separated by spaces.
+ *
+ * This is useful for printing the problem outputs as well as debugging.
+ *
+ * @tparam Container *Container* with streamable values
+ *
+ * @param out Output stream
+ * @param values Values to write
+ */
+template <typename Container>
+void write_container(std::ostream& out, const Container& values)
+{
+  for (auto it = values.begin(); it != values.end(); it++) {
+    if (std::distance(values.begin(), it))
+      out << " ";
+    out << *it;
+  }
+}
+
+/**
+ * Return the tree's "canopy" and the range of moves from root it covers.
+ *
+ * That is, we return the inorder traversal of all nodes that are left children
+ * of left subtrees of the root and all nodes that right children of right
+ * subtrees of the root. We also return the range of the canopy, which is the
+ * interval centered at root that indicates the canopy's coverage.
+ *
+ * One can get a visual representation of the canopy with the below tree:
+ *
+ *     8
+ *    / \
+ *   4   10
+ *    \   \
+ *     6   13
+ *        /
+ *      12
+ *
+ * Here the tree canopy consists of 4, 8, 10, 13 and has a range of [-1, 2].
+ *
+ * @tparam T value type
+ *
+ * @param root Tree root
+ */
+template <typename T>
+auto compute_canopy(const std::unique_ptr<binary_tree_node<T>>& root)
+{
+  // pair holding the canopy nodes and canopy coverage
+  std::pair<std::vector<T>, std::pair<int, int>> res{{}, {0, 0}};
+  // nothing interesting here
+  if (!root)
+    return res;
+  // current pointer to root's left child
+  auto cur = root->left().get();
+  // add root + all left children values as we go deeper + decrement left limit
+  while (cur) {
+    res.first.push_back(cur->value());
+    res.second.first--;
+    cur = cur->left().get();
+  }
+  // reverse the nodes (in backwards order right now)
+  // note: could use deque so no reversal is necessary
+  std::reverse(res.first.begin(), res.first.end());
+  // add root's value to the canopy
+  res.first.push_back(root->value());
+  // reset cur to root's right child
+  cur = root->right().get();
+  // add all right children values as we go deeper + increment right limit
+  while (cur) {
+    res.first.push_back(cur->value());
+    res.second.second++;
+    cur = cur->right().get();
+  }
+  // complete with canopy nodes + canopy range
+  return res;
+}
+
+/**
+ * Return the rebel nodes that stick out from underneath the canopy.
+ *
+ * This is the implementation function that performs a DFS and adds only those
+ * nodes whose position is outside the prescribed canopy range.
+ *
+ * See below for details on what the rebel nodes are.
+ *
+ * @tparam T value type
+ *
+ * @param root Tree root
+ * @param canopy_range Tree canopy range (assumed valid)
+ * @param pos Current position relative to root
+ * @param rebels Pair holding the left and right rebel nodes
+ */
+template <typename T>
+void compute_rebels(
+  const std::unique_ptr<binary_tree_node<T>>& root,
+  const std::pair<int, int>& canopy_range,
+  int pos,
+  std::pair<std::vector<T>, std::vector<T>>& rebels)
+{
+  if (!root)
+    return;
+  // add left subtree rebels
+  compute_rebels(root->left(), canopy_range, pos - 1, rebels);
+  // if outside of left range limit, add to left rebels
+  if (pos < canopy_range.first)
+    rebels.first.push_back(root->value());
+  // else if outside of right range limit, add to right rebels
+  else if (pos > canopy_range.second)
+    rebels.second.push_back(root->value());
+  // add right subtree rebels
+  compute_rebels(root->right(), canopy_range, pos + 1, rebels);
+}
+
+/**
+ * Return the rebel nodes that stick out from underneath the canopy.
+ *
+ * That is, given the canopy range as computed by `compute_canopy`, return the
+ * inorder traversal of all tree nodes that are outside the canopy's range.
+ * These are separated into the left and right orderings to make it easy to
+ * produce the entire "top view" of the binary tree.
+ *
+ * One can get a visual representation of the rebel nodes with the below tree:
+ *
+ *     8
+ *    / \
+ *   1   10
+ *    \   \
+ *     6   20
+ *    /   /
+ *   5  12
+ *  /     \
+ * 4       14
+ *          \
+ *           16
+ *
+ * Here the rebel nodes are 4, 16 and split into left rebels [4] and right
+ * rebels [16]. The canopy range in this case is [-1, 2].
+ *
+ * @tparam T value type
+ *
+ * @param root Tree root
+ * @param canopy_range Tree canopy range (assumed valid)
+ */
+template <typename T>
+auto compute_rebels(
+  const std::unique_ptr<binary_tree_node<T>>& root,
+  const std::pair<int, int>& canopy_range)
+{
+  // pair holding the left and right rebel nodes
+  std::pair<std::vector<T>, std::vector<T>> rebels;
+  // compute rebels and return
+  compute_rebels(root, canopy_range, 0, rebels);
+  return rebels;
+}
+
+/**
  * Wrapper class for streaming a `binary_tree_node<T>` tree's top view.
  *
  * @tparam T value type
@@ -177,8 +332,8 @@ private:
  * if looking down from above on tree, the root, and the rightmost children.
  * All values are printed separated by spaces as required by the problem.
  *
- * @note Need some way to identify nodes that are outside the "shadow" of their
- *  parent as those somehow are counted as being "visible".
+ * @note Still has issues on some test cases likely because "rebels" are being
+ *  printed that are actually hidden by "sub-canopy" nodes.
  *
  * @tparam T value type
  *
@@ -192,28 +347,21 @@ auto& operator<<(std::ostream& out, const binary_tree_top_view<T>& view)
   // empty tree
   if (!root)
     return out;
-  // vector to hold left children + root values (for storing DFS progress)
-  std::vector<T> values;
-  // current pointer to tree node
-  auto cur = root.get();
-  // add root + all left children values as we go deeper
-  while (cur) {
-    values.push_back(cur->value());
-    cur = cur->left().get();
-  }
-  // going backwards, print deepest left child all the way through root
-  for (auto it = values.rbegin(); it != values.rend(); it++) {
-    if (std::distance(it, values.rbegin()))
-      out << " ";
-    out << *it;
-  }
-  // reset cur to root's right child
-  cur = root->right().get();
-  // print all right children values as we go deeper
-  while (cur) {
-    out << " " << cur->value();
-    cur = cur->right().get();
-  }
+  // compute tree canopy values and range
+  auto [canopy_values, canopy_range] = compute_canopy(root);
+  // compute left and right rebels
+  auto [left_rebels, right_rebels] = compute_rebels(root, canopy_range);
+  // write left rebels
+  write_container(out, left_rebels);
+  // write canopy values. prepend with space if there are left rebels
+  if (left_rebels.size() && canopy_values.size())
+    out << " ";
+  write_container(out, canopy_values);
+  // write right rebels. prepend with space if there are right rebels
+  // note: resulted in some UB if just the space is written (without a value)
+  if (right_rebels.size() && canopy_values.size())
+    out << " ";
+  write_container(out, right_rebels);
   return out;
 }
 
