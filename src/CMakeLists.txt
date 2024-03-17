@@ -79,8 +79,6 @@ pdhkr_add_tests(TARGET two_stack_game TEST_CASES 0 1 4)
 # https://www.hackerrank.com/challenges/tree-top-view/problem
 add_executable(tree_top_view tree_top_view.cc)
 pdhkr_add_tests(TARGET tree_top_view TEST_CASES 0 1 2 4)
-# TODO: 4 is failing, see note on not printing only sub-canopy
-pdhkr_xfail_tests(TARGET tree_top_view TEST_CASES 4)
 
 # https://www.hackerrank.com/challenges/tree-level-order-traversal/problem
 add_executable(tree_level_order tree_level_order.cc)
