@@ -83,3 +83,8 @@ pdhkr_add_tests(TARGET tree_top_view TEST_CASES 0 1 2 4)
 # https://www.hackerrank.com/challenges/tree-level-order-traversal/problem
 add_executable(tree_level_order tree_level_order.cc)
 pdhkr_add_tests(TARGET tree_level_order TEST_CASES 0 1 2)
+
+# https://www.hackerrank.com/challenges/find-the-running-median/problem
+add_executable(running_median running_median.cc)
+# note: maybe disable 8 since with -O0 it takes nearly 14 seconds to run
+pdhkr_add_tests(TARGET running_median TEST_CASES 0 1 8)
