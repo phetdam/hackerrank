@@ -54,6 +54,14 @@ if(MSVC)
         /wd4625
         # warn about copy assignment operator implicitly defined as deleted
         /wd4626
+        # warn about MSVC not being able to enforce C++17 left-to-right
+        # evaluation order requirement for ->*, [], >>, << operators
+        /wd4866
+        # warn about MSVC not being able to enforce braced-init-list
+        # left-to-right evaluation order requirement
+        /wd4868
+        # warn about move assignment operator implicitly defined as deleted
+        /wd5027
         # warn about Spectre mitigation for memory load with /QSpectre
         /wd5045
     )
