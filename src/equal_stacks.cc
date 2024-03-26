@@ -3,6 +3,8 @@
  * @author Derek Huang
  * @brief C++ submission for HackerRank problem "Equal Stacks"
  * @copyright MIT License
+ *
+ * URL: https://www.hackerrank.com/challenges/equal-stacks/problem
  */
 
 #include <cstdlib>
