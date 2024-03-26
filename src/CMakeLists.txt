@@ -68,3 +68,6 @@ pdhkr_add_tests(TARGET running_median TEST_CASES 0 1 8)
 
 add_executable(max_stack_element max_stack_element.cc)
 pdhkr_add_tests(TARGET max_stack_element TEST_CASES 0 3 14)
+
+add_executable(equal_stacks equal_stacks.cc)
+pdhkr_add_tests(TARGET equal_stacks TEST_CASES 0 3 11 27)
