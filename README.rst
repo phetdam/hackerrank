@@ -33,13 +33,13 @@ CMake_ >=3.16 is required to build from source on all platforms.
 
 Building is easy with the provided ``build.sh`` build script. For usage, type
 
-.. code:: shell
+.. code:: bash
 
    ./build.sh --help
 
 To build release binaries for this project, simply use the command
 
-.. code:: shell
+.. code:: bash
 
    ./build.sh -c Release
 
@@ -76,20 +76,20 @@ problem but suffice for correctness testing.
 Running the tests is easy with the provided ``check.sh`` test harness script.
 For usage, type
 
-.. code:: shell
+.. code:: bash
 
    ./check.sh --help
 
 To run the tests, which are done in parallel by default, one simply invokes
 
-.. code:: shell
+.. code:: bash
 
    ./check.sh
 
 For serial test running or for lower test parallelism one can use the CTest_
 ``-j`` option, e.g.
 
-.. code:: shell
+.. code:: bash
 
    ./check.sh -Ct -j4
 
