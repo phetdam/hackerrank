@@ -60,6 +60,12 @@ if(MSVC)
         # warn about MSVC not being able to enforce braced-init-list
         # left-to-right evaluation order requirement
         /wd4868
+        # warn about inline function not being inlined
+        /wd4710
+        # warn about non-inline function being selected for inline expansion
+        /wd4711
+        # warn about possible performance loss storing 32-bit float in memory
+        /wd4738
         # warn about move assignment operator implicitly defined as deleted
         /wd5027
         # warn about Spectre mitigation for memory load with /QSpectre

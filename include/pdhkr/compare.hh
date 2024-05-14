@@ -10,9 +10,9 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <istream>
 #include <iomanip>
 #include <iostream>
+#include <istream>
 #include <limits>
 #include <ostream>
 #include <sstream>
