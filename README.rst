@@ -61,14 +61,14 @@ To build 64-bit release binaries for this project, simply invoke
    build -c Release
 
 Simply typing ``build`` will build 64-bit unoptimized binaries and the PDB
-files. You can specify the target architecture using the ``-a`` flag, so to
-build 32-bit unoptimized binaries, use
+files. You can specify the target architecture using the ``-a`` flag, so for
+example to build 32-bit unoptimized binaries, use
 
 .. code:: shell
 
    build -a x86
 
-The Visual Studio toolset used will be whichever is the default.
+Currently, the Visual Studio toolset used will be whichever is the default.
 
 Running tests
 -------------
