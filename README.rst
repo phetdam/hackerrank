@@ -48,17 +48,27 @@ Simply typing ``./build.sh`` will build unoptimized binaries with debug symbols.
 Windows
 ~~~~~~~
 
-Currently there is no build driver batch script yet so CMake should be used
-directly, e.g.
+Building is easy with the provided ``build.bat`` build script. For usage, type
 
 .. code:: shell
 
-   cmake -S . -B build_windows_x86 -A Win32 && ^
-   cmake --build build_windows_x86 --config Debug -j
+   build --help
 
-To build release binaries instead, use ``Release`` instead of ``Debug`` for the
-``--config`` parameter. To build 64-bit binaries, use ``-A x64`` instead of the
-``-A Win32`` shown in the above command.
+To build 64-bit release binaries for this project, simply invoke
+
+.. code:: shell
+
+   build -c Release
+
+Simply typing ``build`` will build 64-bit unoptimized binaries and the PDB
+files. You can specify the target architecture using the ``-a`` flag, so to
+build 32-bit unoptimized binaries, use
+
+.. code:: shell
+
+   build -a x86
+
+The Visual Studio toolset used will be whichever is the default.
 
 Running tests
 -------------
