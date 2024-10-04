@@ -9,6 +9,7 @@
 #define PDHKR_COMPARE_HH_
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
@@ -35,22 +36,107 @@ namespace pdhkr {
 inline constexpr auto compare_lineno_width = 8;
 
 /**
+ * Placeholder type that represents exact equality comparison.
+ */
+struct exact_compare_type {};
+
+/**
+ * Tolerance traits class.
+ *
+ * Only floating-point types are compared to a tolerance.
+ *
+ * @param T type
+ */
+template <typename T>
+struct tolerance_traits {
+  static constexpr exact_compare_type tol{};
+};
+
+/**
+ * Specialization for float values.
+ */
+template <>
+struct tolerance_traits<float> {
+  static constexpr float tol = 1e-8f;
+};
+
+/**
+ * Specialization for double values.
+ */
+template <>
+struct tolerance_traits<double> {
+  static constexpr double tol = 1e-12;
+};
+
+/**
+ * Tolerance object.
+ *
+ * @tparam T type
+ */
+template <typename T>
+class tolerance {
+public:
+  // exact_compare_type if T is not a floating type
+  using value_type = std::conditional_t<
+    std::is_same_v<T, std::remove_const_t<decltype(tolerance_traits<T>::tol)>>,
+    T,
+    exact_compare_type
+  >;
+
+  /**
+   * Ctor.
+   *
+   * @param tol Tolerance value
+   */
+  tolerance(value_type tol = tolerance_traits<T>::tol) noexcept : tol_{tol} {}
+
+  /**
+   * Indicate if comparison is exact.
+   *
+   * This returns `true` for any non-floating type.
+   */
+  static constexpr bool exact() noexcept
+  {
+    return std::is_same_v<value_type, exact_compare_type>;
+  }
+
+  /**
+   * Return the tolerance value.
+   */
+  auto tol() const noexcept { return tol_; }
+
+  /**
+   * Implicitly convert to the tolerance value.
+   */
+  operator value_type() const noexcept
+  {
+    return tol_;
+  }
+
+private:
+  value_type tol_;
+};
+
+/**
  * Compare expected values against actual values.
  *
  * Mismatches result in error messages being written to the output stream.
  *
- * @tparam T Non-floating type to compare equality for
+ * @tparam T Type to compare equality for
  *
  * @param out Output stream to write messages to
  * @param expected Vector of expected values
  * @param actual Vector of actual values
+ * @param tol Comparison tolerance
  * @returns `true` if results match, `false` otherwise
  */
-template <typename T, typename = std::enable_if_t<!std::is_floating_point_v<T>>>
+template <typename T>
 bool compare(
   std::ostream& out,
   const std::vector<T>& expected,
-  const std::vector<T>& actual)
+  const std::vector<T>& actual,
+  // don't involve tolerance<T> in template type deduction
+  tolerance<type_identity_t<T>> tol = {})
 {
   // flag to indicate success/failure
   bool test_success = true;
@@ -65,21 +151,40 @@ bool compare(
       // TODO: print "ERROR" in red text
       if (i >= expected.size())
         out << std::setw(compare_lineno_width) << i + 1 <<
-          ": ERROR: expected N/A, actual " << actual[i] << std::endl;
+          ": ERROR: expected N/A != actual " << actual[i] << std::endl;
       else
         out << std::setw(compare_lineno_width) << i + 1 <<
-          ": ERROR: expected " << expected[i] << ", actual N/A" << std::endl;
+          ": ERROR: expected " << expected[i] << " != actual N/A" << std::endl;
       test_success = false;
+      // continue to next value
+      continue;
     }
-    // no size issue and values equal
-    // TODO: print "OK" in green text
-    else if (expected[i] == actual[i])
-      out << std::setw(compare_lineno_width) << i + 1 << ": OK" << std::endl;
-    // no size issue and unequal
+    // exact comparison for non-floating types
+    if constexpr (decltype(tol)::exact()) {
+      // exact comparison
+      if (expected[i] == actual[i])
+        out << std::setw(compare_lineno_width) << i + 1 << ": OK" << std::endl;
+      else {
+        out << std::setw(compare_lineno_width) << i + 1 <<
+          ": ERROR: expected " << expected[i] << " != actual " << actual[i] <<
+          std::endl;
+        test_success = false;
+      }
+    }
+    // Knuth's "essential equality" comparison for floating types
     else {
-      out << std::setw(compare_lineno_width) << i + 1 << ": ERROR: expected " <<
-        expected[i] << ", actual " << actual[i] << std::endl;
-      test_success = false;
+      // temporaries for later manipulation
+      auto ev = expected[i];
+      auto av = actual[i];
+      // perform Knuth's "essential equality" comparison
+      if (std::fabs(ev - av) <= std::min(std::fabs(ev), std::fabs(av)) * tol)
+        out << std::setw(compare_lineno_width) << i + 1 << ": OK" << std::endl;
+      else {
+        out << std::setw(compare_lineno_width) << i + 1 <<
+          ": ERROR: expected " << expected[i] << " != actual " << actual[i] <<
+          " within " << tol << std::endl;
+        test_success = false;
+      }
     }
   }
   return test_success;
@@ -90,22 +195,28 @@ bool compare(
  *
  * Mismatches result in error messages being written to `std::cout`.
  *
- * @tparam T Non-floating type to compare equality for
+ * @tparam T Type to compare equality for
  *
  * @param expected Vector of expected values
  * @param actual Vector of actual values
+ * @param tol Comparison tolerance
  * @returns `true` if results match, `false` otherwise
  */
-template <typename T, typename = std::enable_if_t<!std::is_floating_point_v<T>>>
-inline bool compare(const std::vector<T>& expected, const std::vector<T>& actual)
+template <typename T>
+inline bool compare(
+  const std::vector<T>& expected,
+  const std::vector<T>& actual,
+  tolerance<type_identity_t<T>> tol = {})
 {
-  return compare(std::cout, expected, actual);
+  return compare(std::cout, expected, actual, tol);
 }
 
 /**
  * Compare expected vector values against actual values.
  *
  * Mismatches result in error messages being written to the output stream.
+ *
+ * @todo Support floating type comparison
  *
  * @tparam T Non-floating type to compare equality for
  *
@@ -133,10 +244,10 @@ bool compare(
       // TODO: print "ERROR" in red text
       if (i >= expected.size())
         out << std::setw(compare_lineno_width) << i + 1 <<
-          ": ERROR: expected N/A, actual " << to_string(actual[i]) << std::endl;
+          ": ERROR: expected N/A != actual " << to_string(actual[i]) << std::endl;
       else
         out << std::setw(compare_lineno_width) << i + 1 <<
-          ": ERROR: expected " << to_string(expected[i]) << ", actual N/A" <<
+          ": ERROR: expected " << to_string(expected[i]) << " != actual N/A" <<
           std::endl;
       test_success = false;
     }
@@ -147,7 +258,7 @@ bool compare(
     // no size issue and unequal. here we also break down mismatched values
     else {
       out << std::setw(compare_lineno_width) << i + 1 << ": ERROR: expected " <<
-        to_string(expected[i]) << ", actual " << to_string(actual[i]) << std::endl;
+        to_string(expected[i]) << " != actual " << to_string(actual[i]) << std::endl;
       // lower/upper container sizes for size reporting
       auto lower_size_i = std::min(expected[i].size(), actual[i].size());
       auto upper_size_i = std::max(expected[i].size(), actual[i].size());
@@ -164,17 +275,17 @@ bool compare(
           if (j >= expected[i].size())
             out << std::setw(compare_lineno_width) << i + 1 << ": " <<
               std::setw(compare_lineno_width) << j + 1 << "/" << size_label <<
-              ": expected N/A, actual " << actual[i][j] << std::endl;
+              ": expected N/A != actual " << actual[i][j] << std::endl;
           else
             out << std::setw(compare_lineno_width) << i + 1 << ": " <<
               std::setw(compare_lineno_width) << j + 1 << "/" << size_label <<
-              ": expected " << expected[i][j] << ", actual N/A" << std::endl;
+              ": expected " << expected[i][j] << " != actual N/A" << std::endl;
         }
         // no size issue and unequal values
         else if (expected[i][j] != actual[i][j])
           out << std::setw(compare_lineno_width) << i + 1 << ": " <<
             std::setw(compare_lineno_width) << j + 1 << "/" << size_label <<
-            ": expected " << expected[i][j] << ", actual " << actual[i][j] <<
+            ": expected " << expected[i][j] << " != actual " << actual[i][j] <<
             std::endl;
         // no size issue and values equal
       }
@@ -301,10 +412,15 @@ T to_number(const std::string& str)
  * @param out Output stream to write messages to
  * @param ein Input stream containing expected result
  * @param ain Input stream containing actual result
+ * @param tol Comparison tolerance
  * @returns `true` if results match, `false` otherwise
  */
 template <typename T>
-bool scalar_compare(std::ostream& out, std::istream& ein, std::istream& ain)
+bool scalar_compare(
+  std::ostream& out,
+  std::istream& ein,
+  std::istream& ain,
+  tolerance<T> tol = {})
 {
   // expected values
   std::vector<T> expected;
@@ -315,7 +431,7 @@ bool scalar_compare(std::ostream& out, std::istream& ein, std::istream& ain)
   for (std::string line; std::getline(ain, line); )
     actual.push_back(to_number<T>(line));
   // return result of comparison, writing error messages to stream
-  return compare(out, expected, actual);
+  return compare(out, expected, actual, tol);
 }
 
 /**
@@ -325,7 +441,7 @@ bool scalar_compare(std::ostream& out, std::istream& ein, std::istream& ain)
  * values, which is typical for most HackerRank problems. Mismatches result in
  * messages being written to the output stream.
  *
- * @note This function can obvsiouly scale poorly if the results are large.
+ * @note This function can obviously scale poorly if the results are large.
  *
  * @tparam T Vector value type to compare equality for
  *
@@ -363,23 +479,27 @@ bool vector_compare(std::ostream& out, std::istream& ein, std::istream& ain)
  *
  * Mismatches result in messages being written to the output stream.
  *
+ * @todo Support floating types for vector comparison
+ *
  * @tparam T Scalar/object type or `std::vector<U>` to compare equality for
  *
  * @param out Output stream to write messages to
  * @param ein Input stream containing expected result
  * @param ain Input stream containing actual result
+ * @param tol Comparison tolerance
  * @returns `true` if results match, `false` otherwise
  */
 template <typename T>
-bool compare(std::ostream& out, std::istream& ein, std::istream& ain)
+bool compare(
+  std::ostream& out, std::istream& ein, std::istream& ain, tolerance<T> tol = {})
 {
   // if type is vector, use vector_compare
-  // note: this doesn't work if the vector is not using the default allocator
+  // FIXME: no tolerance support for floating types yet
   if constexpr (is_std_vector_v<T>)
     return vector_compare<typename T::value_type>(out, ein, ain);
   // else use scalar_compare
   else
-    return scalar_compare<T>(out, ein, ain);
+    return scalar_compare<T>(out, ein, ain, tol);
 }
 
 /**
@@ -392,12 +512,13 @@ bool compare(std::ostream& out, std::istream& ein, std::istream& ain)
  *
  * @param ein Input stream containing expected result
  * @param ain Input stream containing actual result
+ * @param tol Comparison tolerance
  * @returns `true` if results match, `false` otherwise
  */
 template <typename T>
-inline bool compare(std::istream& ein, std::istream& ain)
+inline bool compare(std::istream& ein, std::istream& ain, tolerance<T> tol = {})
 {
-  return compare<T>(std::cout, ein, ain);
+  return compare<T>(std::cout, ein, ain, tol);
 }
 
 /**
@@ -412,12 +533,14 @@ inline bool compare(std::istream& ein, std::istream& ain)
  * @param out Output stream to write messages to
  * @param ein Input stream containing expected result
  * @param ain Input stream containing actual result
+ * @param tol Comparison tolerance
  * @returns `EXIT_SUCCESS` if results match, `EXIT_FAILURE` otherwise
  */
 template <typename T>
-inline int exit_compare(std::ostream& out, std::istream& ein, std::istream& ain)
+inline int exit_compare(
+  std::ostream& out, std::istream& ein, std::istream& ain, tolerance<T> tol = {})
 {
-  return (compare<T>(out, ein, ain)) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return (compare<T>(out, ein, ain, tol)) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 /**
@@ -431,12 +554,14 @@ inline int exit_compare(std::ostream& out, std::istream& ein, std::istream& ain)
  *
  * @param ein Input stream containing expected result
  * @param ain Input stream containing actual result
+ * @param tol Comparison tolerance
  * @returns `EXIT_SUCCESS` if results match, `EXIT_FAILURE` otherwise
  */
 template <typename T>
-inline auto exit_compare(std::istream& ein, std::istream& ain)
+inline auto exit_compare(
+  std::istream& ein, std::istream& ain, tolerance<T> tol = {})
 {
-  return exit_compare<T>(std::cout, ein, ain);
+  return exit_compare<T>(std::cout, ein, ain, tol);
 }
 
 }  // namespace pdhkr
