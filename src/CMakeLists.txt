@@ -10,8 +10,8 @@ add_executable(roads_and_libraries roads_and_libraries.cc)
 pdhkr_add_tests(TARGET roads_and_libraries TEST_CASES 0 2r 2s 3)
 
 add_executable(journey_to_moon journey_to_moon.cc)
-# note: maybe disable 11 since with -O0 it takes nearly 20 seconds to run
-pdhkr_add_tests(TARGET journey_to_moon TEST_CASES 0 1r 1s 4 11)
+# note: maybe disable 11 since with -O0 it takes nearly 40 seconds to run
+pdhkr_add_tests(TARGET journey_to_moon TEST_CASES 0 1r 1s 4 10 11)
 
 add_executable(subtrees_and_paths subtrees_and_paths.cc)
 # use the tree_node class which only works if the input results in an actual
