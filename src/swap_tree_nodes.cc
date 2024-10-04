@@ -278,10 +278,18 @@ int main()
     fin >> right_id;
     // find parent and fill in children (if not negative)
     auto& parent = find_node(root, i + 1);
+// silence C4365 on signed/unsigned mismatch
+#ifdef _MSC_VER
+#pragma warning (push)
+#pragma warning (disable: 4365)
+#endif  // _MSC_VER
     if (left_id > 0)
       parent->left() = std::make_unique<decltype(root)::element_type>(left_id);
     if (right_id > 0)
       parent->right() = std::make_unique<decltype(root)::element_type>(right_id);
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif  // _MSC_VER
   }
   // number of subtree swaps
   unsigned int n_swaps;

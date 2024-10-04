@@ -54,6 +54,8 @@ if(MSVC)
         /wd4625
         # warn about copy assignment operator implicitly defined as deleted
         /wd4626
+        # warn about padding added after a data member
+        /wd4820
         # warn about MSVC not being able to enforce C++17 left-to-right
         # evaluation order requirement for ->*, [], >>, << operators
         /wd4866
