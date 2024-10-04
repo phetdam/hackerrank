@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "pdhkr/common.h"
+#include "pdhkr/features.h"
 
 namespace pdhkr {
 
@@ -80,6 +81,33 @@ struct is_std_vector<std::vector<T, A>> : std::true_type {};
  */
 template <typename T>
 inline constexpr bool is_std_vector_v = is_std_vector<T>::value;
+
+// no std::type_identity before C++20
+#if !PDHKR_HAS_CC_20
+/**
+ * Type identity helper to induce a non-deduced context.
+ *
+ * @tparam T type
+ */
+template <typename T>
+struct type_identity { using type = T; };
+
+/**
+ * Type identity type alias inducing a non-deduced context.
+ *
+ * @tparam T type
+ */
+template <typename T>
+using type_identity_t = typename type_identity<T>::type;
+#else
+// use C++20 traits class
+template <typename T>
+using type_identity = std::type_identity<T>;
+
+// use C++20 traits type helper
+template <typename T>
+using type_identity_t = std::type_identity_t<T>;
+#endif  // PDHKR_HAS_CC_20
 
 }  // namespace pdhkr
 
