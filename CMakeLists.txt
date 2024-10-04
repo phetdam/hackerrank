@@ -16,8 +16,28 @@ project(
     LANGUAGES CXX
 )
 
+# HackerRank uses GCC 8.3.0 and supports C++11, C++14, C++20 as the typical
+# available choices of C++ standard. C++20 is used here by default, but it is
+# not required, so CMake should allow "graceful" decay into C++17, C++14, etc.
+# for that reason, a lot of the code is actually written as C++17, not C++20.
+# see http://tinyurl.com/mr3t7vfe for HackerRank environment documentation
+set(CMAKE_CXX_STANDARD 20)
+
 # enable AddressSanitizer
 option(PDHKR_ENABLE_ASAN "Compile with AddressSanitizer enabled" OFF)
+
+# determine if building with multi-config generator or not
+get_property(
+    PDHKR_MULTI_CONFIG_GENERATOR
+    GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG
+)
+
+# multi-config generator
+if(PDHKR_MULTI_CONFIG_GENERATOR)
+    message(STATUS "Build configs: ${CMAKE_CONFIGURATION_TYPES}")
+else()
+    message(STATUS "Build configs: ${CMAKE_BUILD_TYPE}")
+endif()
 
 # AddressSanitizer
 if(PDHKR_ENABLE_ASAN)
@@ -25,13 +45,6 @@ if(PDHKR_ENABLE_ASAN)
 else()
     message(STATUS "AddressSanitizer: Disabled")
 endif()
-
-# HackerRank uses GCC 8.3.0 and supports C++11, C++14, C++20 as the typical
-# available choices of C++ standard. C++20 is used here by default, but it is
-# not required, so CMake should allow "graceful" decay into C++17, C++14, etc.
-# for that reason, a lot of the code is actually written as C++17, not C++20.
-# see http://tinyurl.com/mr3t7vfe for HackerRank environment documentation
-set(CMAKE_CXX_STANDARD 20)
 
 # put all build artifacts in top-level build directory. multi-config generators
 # like Visual Studio will put a per-config subdirectory as well
