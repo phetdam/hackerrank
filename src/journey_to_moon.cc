@@ -199,8 +199,11 @@ auto journey_to_moon(unsigned int n, const edge_vector& a_pairs)
   // number of pairs we can select
   unsigned long long n_pairs = 0;
   // do double loop through countries to compute total number of pairs
-  for (decltype(countries.size()) i = 0; i < countries.size() - 1; i++)
-    for (decltype(i) j = i + 1; j < countries.size(); j++)
+  // note: with -O0 on WSL1 Ubuntu 22.04 not precomputing the size() value
+  // leads to an extra 33% gain in execution time
+  auto countries_size = countries.size();
+  for (decltype(countries.size()) i = 0; i < countries_size - 1; i++)
+    for (decltype(i) j = i + 1; j < countries_size; j++)
       n_pairs += countries[i] * countries[j];
   return n_pairs;
 }
