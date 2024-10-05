@@ -25,6 +25,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 # enable AddressSanitizer
 option(PDHKR_ENABLE_ASAN "Compile with AddressSanitizer enabled" OFF)
+# enable instrumentation for gprof (only for GCC/Clang)
+# note: do *not* run tests in parallel if instrumentation is enabled; the test
+# programs will all try to write to the same gmon.out
+option(PDHKR_ENABLE_PG "Enable instrumentation for gprof profiling" OFF)
 
 # determine if building with multi-config generator or not
 get_property(
@@ -44,6 +48,67 @@ if(PDHKR_ENABLE_ASAN)
     message(STATUS "AddressSanitizer: Enabled")
 else()
     message(STATUS "AddressSanitizer: Disabled")
+endif()
+
+# only GCC/Clang support -pg so we check support if requested
+if(PDHKR_ENABLE_PG AND NOT MSVC)
+    set(PDHKR_PG_TEST_SRC "${CMAKE_CURRENT_SOURCE_DIR}/pdhkr_pg_test.cc")
+    file(WRITE ${PDHKR_PG_TEST_SRC} "int main() { return 0; }")
+    # old try_compile signature for compatibility. skip if MSVC
+    try_compile(
+        PDHKR_PG_TEST_RESULT ${CMAKE_BINARY_DIR} ${PDHKR_PG_TEST_SRC}
+        CMAKE_FLAGS -DCOMPILE_OPTIONS=-pg
+        LINK_OPTIONS -pg
+    )
+    # if not successful, no -pg
+    if(NOT PDHKR_PG_TEST_RESULT)
+        message(FATAL_ERROR "${CMAKE_CXX_COMPILER} does not support -pg")
+    endif()
+    # clean up
+    file(REMOVE ${PDHKR_PG_TEST_SRC})
+    unset(PDHKR_PG_TEST_SRC)
+    unset(PDHKR_PG_TEST_RESULT CACHE)
+endif()
+
+# gprof instrumentation
+if(PDHKR_ENABLE_PG AND NOT MSVC)
+    message(STATUS "gprof profiling: Enabled")
+else()
+    message(STATUS "gprof profiling: Disabled")
+endif()
+
+# check if gprof is actually available
+find_program(PDHKR_GPROF gprof)
+# check the version if we have gprof
+if(NOT PDHKR_GPROF STREQUAL "PDHKR_GPROF-NOTFOUND")
+    execute_process(
+        COMMAND ${PDHKR_GPROF} --version
+        RESULT_VARIABLE PDHKR_GPROF_VERSION_RESULT
+        OUTPUT_VARIABLE PDHKR_GPROF_VERSION_OUTPUT
+    )
+    # failed (non-zero exit)
+    if(PDHKR_GPROF_VERSION_RESULT)
+        message(
+            WARNING
+            "Unable to determine gprof version with ${PDHKR_GPROF} --version"
+        )
+    # otherwise, determine version from output
+    else()
+        string(
+            REGEX MATCH "[0-9]+\.[0-9]+"
+            PDHKR_GPROF_VERSION "${PDHKR_GPROF_VERSION_OUTPUT}"
+        )
+    endif()
+    # clean up
+    unset(PDHKR_GPROF_VERSION_RESULT)
+    unset(PDHKR_GPROF_VERSION_OUTPUT)
+endif()
+
+# gprof version
+if(PDHKR_GPROF_VERSION)
+    message(STATUS "gprof version: ${PDHKR_GPROF_VERSION}")
+else()
+    message(STATUS "gprof version: None")
 endif()
 
 # put all build artifacts in top-level build directory. multi-config generators
@@ -88,6 +153,11 @@ if(MSVC)
     )
 else()
     add_compile_options(-Wall)
+    # enable gprof profiling instrumentation
+    if(PDHKR_ENABLE_PG)
+        add_compile_options(-pg)
+        add_link_options(-pg)
+    endif()
 endif()
 
 # include directory
