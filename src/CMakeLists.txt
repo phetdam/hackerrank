@@ -63,8 +63,7 @@ add_executable(tree_level_order tree_level_order.cc)
 pdhkr_add_tests(TARGET tree_level_order TEST_CASES 0 1 2)
 
 add_executable(running_median running_median.cc)
-# note: maybe disable 8 since with -O0 it takes nearly 14 seconds to run
-pdhkr_add_tests(TARGET running_median TEST_CASES 0 1 8)
+pdhkr_add_tests(TARGET running_median TEST_CASES 0 1 5 8)
 
 add_executable(max_stack_element max_stack_element.cc)
 pdhkr_add_tests(TARGET max_stack_element TEST_CASES 0 3 14)

@@ -42,14 +42,12 @@ auto running_medians(const std::vector<T>& values)
   std::vector<T> sorted_values;
   // for each value in values
   for (const auto& value : values) {
-    // find place to insert value
-    auto insert_it = std::find_if(
-      sorted_values.begin(),
-      sorted_values.end(),
-      [&value](const auto& v) { return v > value; }
+    // find place to insert value. since it is sorted, we can use upper_bound
+    // for logarithmic instead of linear complexity as with find_if
+    sorted_values.insert(
+      std::upper_bound(sorted_values.begin(), sorted_values.end(), value),
+      value
     );
-    // insert into sorted values
-    sorted_values.insert(insert_it, value);
     // add median to medians (even number of values)
     if (sorted_values.size() % 2 == 0) {
       auto mid = sorted_values.size() / 2;
