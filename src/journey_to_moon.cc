@@ -199,12 +199,72 @@ auto journey_to_moon(unsigned int n, const edge_vector& a_pairs)
   // number of pairs we can select
   unsigned long long n_pairs = 0;
   // do double loop through countries to compute total number of pairs
-  // note: with -O0 on WSL1 Ubuntu 22.04 not precomputing the size() value
-  // leads to an extra 33% gain in execution time
-  auto countries_size = countries.size();
-  for (decltype(countries.size()) i = 0; i < countries_size - 1; i++)
-    for (decltype(i) j = i + 1; j < countries_size; j++)
+  //
+  // note:
+  //
+  // with -O0 on WSL1 Ubuntu 22.04 there are a few specific optimizations that
+  // are made because the unoptimized runtime is dominated by calls to size()
+  // and operator[]. this may be due to function call overhead and/or repeated
+  // memory accesses made to retrieve the results of said calls.
+  //
+  // there are 3 key optimizations that were made to greatly reduce runtime:
+  //
+  // 1. computing countries.size() once
+  // 2. computing countries[i] once per outer loop
+  // 3. indexing directly into countries.data() in the inner loop
+  // 4. improve cache locality by using raw pointer as iterator
+  //
+  // here we can show the time(1) results of various optimizations made using
+  // feedback from valgrind --tool=callgrind ./build/journey_to_moon_11:
+  //
+  // real    0m43.421s (original)
+  // real    0m31.547s (with 1)
+  // real    0m18.229s (with 1, 2)
+  // real    0m12.483s (with 1, 2, 3)
+  // real    0m10.109s (with 1, 2, 3, 4)
+  //
+  // it is pretty clear that 2 and 3 have the greatest impact as by computing
+  // values to a temporary, reducing memory lookups, and reducing the function
+  // call overhead that is present in operator[] we have some big wins.
+  //
+  // however, it is important to note that with optimization turned on, the
+  // compiler can do this (and so much more) as the optimized runtime is only
+  // around 1 second. here we show the time(1) with -O2 compilation:
+  //
+  // real    0m1.057s (original)
+  // real    0m1.065s (with 1, 2, 3, 4)
+  //
+  // since the original code is more idiomatic, it is possible that the
+  // compiler's program analysis is easier and so it knows how to better
+  // optimize, e.g. with register allocation, constant propagation.
+  //
+  // as an addendum, note that these optimizations also improved runtime when
+  // compiling using the Visual Studio 2022 C++ compiler. journey_to_moon_11
+  // used to run in around 15 or so seconds but with these changes, the runtime
+  // when compiling without optimization has dropped to around 5 seconds.
+  //
+// optimized code uses the original "vanilla" code
+#if defined(NDEBUG)
+  for (decltype(countries.size()) i = 0; i < countries.size() - 1; i++)
+    for (decltype(i) j = i + 1; j < countries.size(); j++)
       n_pairs += countries[i] * countries[j];
+// unoptimized code uses mentioned optimizations to cut down runtime
+#else
+  // key optimization 1: writing size() to a temporary
+  auto countries_size = countries.size();
+  // raw data pointer + raw "end" iterator
+  auto c_data = countries.data();
+  auto c_data_end = c_data + countries_size;
+  // computes total number of pairs
+  for (decltype(countries_size) i = 0; i < countries_size - 1; i++) {
+    // key optimization 2: writing countries[i] to a temporary
+    // note: since we already have c_data we also use to index in outer loop
+    auto c_i = c_data[i];
+    // key optimization 4: improve cache locality by using raw pointer iterator
+    for (auto it_j = c_data + i + 1; it_j < c_data_end; it_j++)
+      n_pairs += c_i * *it_j;
+  }
+#endif  // !defined(NDEBUG)
   return n_pairs;
 }
 
